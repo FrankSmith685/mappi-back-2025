@@ -21,7 +21,7 @@ export const generateToken = (
       if (decodedToken.username === username) {
         return {
           accessToken: token,
-          refreshToken: jwt.sign({ username }, REFRESH_SECRET_KEY, { expiresIn: '7d' }) // refresco nuevo
+          refreshToken: jwt.sign({ username }, REFRESH_SECRET_KEY, { expiresIn: '2h' }) // refresco nuevo
         };
       }
     } catch (err) {
@@ -31,7 +31,7 @@ export const generateToken = (
 
   const payload: TokenPayload = { username, data };
   const accessToken = jwt.sign(payload, ACCESS_SECRET_KEY, { expiresIn: '1h' });
-  const refreshToken = jwt.sign({ username }, REFRESH_SECRET_KEY, { expiresIn: '7d' });
+  const refreshToken = jwt.sign({ username }, REFRESH_SECRET_KEY, { expiresIn: '2h' });
   activeTokens[username] = accessToken;
 
   return { accessToken, refreshToken };

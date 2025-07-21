@@ -1,5 +1,6 @@
 import { sequelize } from '../db';
 import { TipoUsuarios } from '../interfaces/TipoUsuario';
+import { UsuarioResponse } from '../interfaces/Usuario';
 
 const {
   TipoUsuarios,
@@ -29,24 +30,57 @@ export const userType = async (): Promise<{ success: boolean; message: string; d
   }
 };
 
-// export const existsUserByEmail = async (correo: string): Promise<{ success: boolean; message: string; exists: boolean}> => {
-//   try {
-//     const usuario = await Usuarios.findOne({
-//       where: { correo },
-//     });
 
-//     if (usuario) {
-//       const plainUser = usuario.get({ plain: true }) as UsuarioAttributes;
-//       return { exists: true, data: plainUser };
-//     }
+export const getUserInfo = async (username: string): Promise<{
+  success: boolean;
+  message: string;
+  data: UsuarioResponse;
+}> => {
+  try {
+    const user = await Usuarios.findOne({
+      where: { correo: username },
+      include: [
+        {
+          model: TipoUsuarios,
+          as: 'TipoUsuarios'
+        }
+      ]
+    });
 
-//     return { exists: false, data: null };
-//   } catch (error: any) {
-//     throw new Error(`Error al buscar usuario por correo: ${error.message}`);
-//   }
-// };
+    if (!user) {
+      throw new Error("Usuario no encontrado");
+    }
 
+    const userPlain = user.get({ plain: true });
 
+    const filteredUser: UsuarioResponse = {
+      cod_usuario: userPlain.cod_usuario,
+      correo: userPlain.correo,
+      nombre: userPlain.nombre,
+      apellido: userPlain.apellido,
+      razon_social: userPlain.razon_social,
+      telefono: userPlain.telefono,
+      telefono_movil: userPlain.telefono_movil,
+      tipo_usuario: userPlain.TipoUsuarios
+        ? {
+            cod_tipo_usuario: userPlain.TipoUsuarios.cod_tipo_usuario,
+            descripcion: userPlain.TipoUsuarios.descripcion,
+          }
+        : undefined,
+    };
 
+    return {
+      success: true,
+      message: 'Usuario autenticado correctamente',
+      data: filteredUser,
+    };
+  } catch (error: any) {
+    throw {
+      success: false,
+      message: error.message,
+      data: null
+    };
+  }
+};
 
 

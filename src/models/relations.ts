@@ -14,7 +14,7 @@ export const defineRelations = (sequelize: Sequelize) => {
   } = sequelize.models;
 
   // === RELACIONES DE USUARIOS ===
-  Usuarios.belongsTo(TipoUsuarios, { foreignKey: 'cod_tipo_usuario' });
+  Usuarios.belongsTo(TipoUsuarios, { foreignKey: 'cod_tipo_usuario',as: 'TipoUsuarios'});
 
   Usuarios.belongsToMany(TipoDocumentos, { through: UsuarioDocumentos, foreignKey: 'cod_usuario' });
   TipoDocumentos.belongsToMany(Usuarios, { through: UsuarioDocumentos, foreignKey: 'cod_tipo_documento' });

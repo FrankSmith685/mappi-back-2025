@@ -1,3 +1,5 @@
+import { TipoUsuarios } from "./TipoUsuario";
+
 export type EstadoUsuario = 'Activo' | 'Inactivo' | 'Bloqueado';
 export type TipoRegistro = 'Completo' | 'Parcial' | 'Google' | 'Facebook';
 
@@ -31,3 +33,16 @@ export type UsuarioCreationAttributes = Partial<
   >
 > &
   Pick<UsuarioAttributes, 'cod_usuario' | 'correo' | 'estado' | 'fecha_registro' | 'tipo_registro'>;
+
+
+
+  export interface UsuarioResponse {
+    cod_usuario: string;
+    correo: string;
+    nombre?: string;
+    apellido?: string;
+    razon_social?: string;
+    telefono?: string;
+    telefono_movil?: string;
+    tipo_usuario?:TipoUsuarios
+  }
