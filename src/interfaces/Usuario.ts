@@ -44,6 +44,7 @@ export type UsuarioCreationAttributes = Partial<
     telefono_movil?: string;
     tipo_usuario?:TipoUsuarios;
     documento?: Documento;
+    tipo_registro?:TipoRegistro,
   }
 
 

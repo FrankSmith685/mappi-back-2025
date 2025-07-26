@@ -11,7 +11,7 @@ import { getTipoNotificaciones } from './src/utils/getTipoNotificaciones';
 
 const PORT = process.env.PORT || 3001;
 
-conn.sync({ force: false }).then(() => {
+conn.sync({ force: true }).then(() => {
   server.listen(PORT, async() => {
     await getTipoNotificaciones();
     await getTipoUsuarios();

@@ -46,9 +46,11 @@ router.patch('/actualizar-estado-notificacion/:id', authenticate, async (req: Re
       });
     }
 
-    const result = await updateUsuarioTipoNotificaciones([
-        { cod_usua_tip_notificacion: Number(id), activo }
-    ]);
+    const result = await updateUsuarioTipoNotificaciones({
+      cod_tipo_notificaciones: Number(id),
+      activo,
+    });
+
     res.status(result.success ? 200 : 404).json(result);
   } catch (error: any) {
     console.error(error);

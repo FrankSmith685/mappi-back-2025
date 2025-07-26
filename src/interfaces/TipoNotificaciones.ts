@@ -17,6 +17,6 @@ export type UsuarioTipoNotificacionesCreationAttributes = Partial<Pick<UsuarioTi
   Pick<UsuarioTipoNotificacionesAttributes, 'cod_usuario' | 'cod_tipo_notificaciones' | 'activo'>;
 
 export interface PreferenciaUpdate {
-  cod_usua_tip_notificacion: number;
+  cod_tipo_notificaciones: number;
   activo: boolean;
 }

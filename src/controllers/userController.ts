@@ -86,7 +86,8 @@ export const userType = async (): Promise<{ success: boolean; message: string; d
               descripcion: userPlain.TipoUsuarios.descripcion,
             }
           : undefined,
-        documento: document
+        documento: document,
+        tipo_registro: userPlain.tipo_registro,
       };
 
       return {
@@ -115,7 +116,7 @@ export const updateUser = async (
 
     const esCompleto = fieldsToUpdate.nombre?.trim() &&
                        fieldsToUpdate.apellido?.trim() &&
-                       fieldsToUpdate.telefono?.trim() &&
+                       fieldsToUpdate.telefono_movil?.trim() &&
                        documento?.cod_tipo_documento &&
                        documento?.nro_documento;
 
@@ -186,7 +187,8 @@ export const updateUser = async (
             descripcion: userPlain.TipoUsuarios.descripcion,
           }
         : undefined,
-      documento: document
+      documento: document,
+       tipo_registro: userPlain.tipo_registro,
     };
 
     return {

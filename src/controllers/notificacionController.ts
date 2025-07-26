@@ -75,24 +75,25 @@ export const getUsuarioTipoNotificacionesPorCorreo = async (correo: string) => {
 };
 
 export const updateUsuarioTipoNotificaciones = async (
-  updates: PreferenciaUpdate[]
+  update: PreferenciaUpdate
 ) => {
   try {
-    for (const { cod_usua_tip_notificacion, activo } of updates) {
-      await UsuaTipNotificaciones.update(
-        { activo },
-        { where: { cod_usua_tip_notificacion } }
-      );
-    }
+    const { cod_tipo_notificaciones, activo } = update;
+    const [rowsUpdated] = await UsuaTipNotificaciones.update(
+      { activo },
+      { where: { cod_tipo_notificaciones } }
+    );
 
     return {
-      success: true,
-      message: "Preferencias actualizadas correctamente.",
+      success: rowsUpdated > 0,
+      message: rowsUpdated > 0
+        ? "Preferencia actualizada correctamente."
+        : "No se encontró el registro a actualizar.",
     };
   } catch (error: any) {
     return {
       success: false,
-      message: error.message || "Error al actualizar preferencias.",
+      message: error.message || "Error al actualizar preferencia.",
     };
   }
 };
