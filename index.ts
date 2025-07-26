@@ -13,11 +13,12 @@ const PORT = process.env.PORT || 3001;
 
 conn.sync({ force: false }).then(() => {
   server.listen(PORT, async() => {
+    await getTipoNotificaciones();
     await getTipoUsuarios();
     await getTipoDocumentos();
     await getUbigeos();
     await getMedios();
-    await getTipoNotificaciones();
+    
     console.log(`Servidor escuchando en puerto ${PORT}`);
   });
 });

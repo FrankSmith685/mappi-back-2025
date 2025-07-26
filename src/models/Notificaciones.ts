@@ -22,10 +22,6 @@ export default (sequelize: Sequelize) => {
       defaultValue: DataTypes.NOW,
       allowNull: false,
     },
-    leida: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
     link: {
       type: DataTypes.STRING,
       allowNull: true,

@@ -7,7 +7,7 @@ import {
 
 export default (sequelize: Sequelize) => {
   sequelize.define<Model<UsuarioDocumentoAttributes, UsuarioDocumentoCreationAttributes>>(
-    'UsuarioDocumentos',
+    'UsuaDocumentos',
     {
       cod_usuario: {
         type: DataTypes.STRING,

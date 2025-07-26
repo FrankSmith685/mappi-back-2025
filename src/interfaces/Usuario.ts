@@ -1,3 +1,5 @@
+import { Documento } from "./Documento";
+import { TipoDocumento } from "./TipoDocumentos";
 import { TipoUsuarios } from "./TipoUsuario";
 
 export type EstadoUsuario = 'Activo' | 'Inactivo' | 'Bloqueado';
@@ -15,7 +17,6 @@ export interface UsuarioAttributes {
   fecha_registro?: Date;
   estado?: EstadoUsuario;
   ultimo_inicio_sesion?: Date;
-  recibir_notificaciones?: boolean;
   tipo_registro?: TipoRegistro;
 }
 
@@ -29,12 +30,9 @@ export type UsuarioCreationAttributes = Partial<
     | 'telefono'
     | 'telefono_movil'
     | 'ultimo_inicio_sesion'
-    | 'recibir_notificaciones'
   >
 > &
   Pick<UsuarioAttributes, 'cod_usuario' | 'correo' | 'estado' | 'fecha_registro' | 'tipo_registro'>;
-
-
 
   export interface UsuarioResponse {
     cod_usuario: string;
@@ -44,5 +42,20 @@ export type UsuarioCreationAttributes = Partial<
     razon_social?: string;
     telefono?: string;
     telefono_movil?: string;
-    tipo_usuario?:TipoUsuarios
+    tipo_usuario?:TipoUsuarios;
+    documento?: Documento;
   }
+
+
+export interface UpdateUsuarioCompleto {
+  cod_usuario: string;
+  nombre?: string;
+  apellido?: string;
+  razon_social?: string;
+  telefono?: string;
+  telefono_movil?: string;
+  tipo_registro?: 'Completo' | 'Parcial' | 'Google' | 'Facebook';
+  estado?: 'Activo' | 'Inactivo' | 'Bloqueado';
+  documento?: Documento;
+  tipo_usuario?: TipoUsuarios;
+}

@@ -57,10 +57,6 @@ export default (sequelize: Sequelize) => {
       defaultValue: DataTypes.NOW,
       allowNull: false,
     },
-    recibir_notificaciones: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
     tipo_registro: {
       type: DataTypes.ENUM('Completo', 'Parcial', 'Google', 'Facebook'),
       allowNull: false,

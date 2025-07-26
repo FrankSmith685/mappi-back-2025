@@ -12,17 +12,19 @@ import { RegisterUserData } from '../interfaces/Auth';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { sendEmail } from '../config/nodemailer/emailSender';
+import { DateTime } from "luxon";
 dotenv.config();
+
 
 const {
   Usuarios,
   TipoUsuarios,
   TipoDocumentos,
-  UsuarioDocumentos,
+  UsuaDocumentos,
   Ubigeos,
   Medios,
   TipoNotificaciones,
-  Notificaciones
+  UsuaTipNotificaciones
 } = sequelize.models;
 
 // Verifica si el correo existe en la base de datos
@@ -41,7 +43,6 @@ export const verifyEmail = async (
         throw new Error(JSON.stringify({ success: false, message: error.message }));
     }
 };
-
 // Login del usuario
 export const loginUser = async (
   correo: string,
@@ -62,14 +63,15 @@ export const loginUser = async (
     if (!match) {
       throw new Error('La contraseña del usuario es incorrecta');
     }
-
+    const limaNow = DateTime.now().setZone('America/Lima').toJSDate();
+    console.log("DATE",limaNow);
+    await existUser.update({ ultimo_inicio_sesion: limaNow });
     return createAuthResponse(correoUsuario);
   } catch (error: any) {
     console.error(error);
     throw new Error(JSON.stringify({ success: false, message: error.message }));
   }
 };
-
 //Registro de un nuevo usuario
 export const registerUser = async (data: RegisterUserData) => {
   try {
@@ -142,7 +144,7 @@ export const registerUser = async (data: RegisterUserData) => {
 
     const cod_nuevoUsuario = nuevoUsuario.getDataValue('cod_usuario');
 
-    await UsuarioDocumentos.create({
+    await UsuaDocumentos.create({
       cod_usuario: cod_nuevoUsuario,
       cod_tipo_documento: cod_tipo_documento,
       nro_documento: nroDocumento
@@ -154,18 +156,13 @@ export const registerUser = async (data: RegisterUserData) => {
 
     const tiposNotificaciones = await TipoNotificaciones.findAll();
 
-    const notificacionesUsuario = tiposNotificaciones.map((tipo: any) => ({
+    const preferenciasUsuario = tiposNotificaciones.map((tipo: any) => ({
       cod_usuario: cod_nuevoUsuario,
-      cod_tipo_notificacion: tipo.cod_tipo_notificaciones,
-      cod_medios: cod_medios,
-      titulo: tipo.nombre,
-      mensaje: '',
-      fecha_envio: new Date(),
-      leida: false,
-      link: '',
+      cod_tipo_notificaciones: tipo.cod_tipo_notificaciones,
+      activo: true,
     }));
 
-    await Notificaciones.bulkCreate(notificacionesUsuario);
+    await UsuaTipNotificaciones.bulkCreate(preferenciasUsuario);
 
     const {accessToken, refreshToken} = generateToken(correo, { correo });
 
@@ -175,8 +172,7 @@ export const registerUser = async (data: RegisterUserData) => {
     throw new Error(JSON.stringify({ success: false, message: error.message }));
   }
 };
-
-//RefreshToken
+// Refresh token para obtener un nuevo access token
 const REFRESH_SECRET_KEY = process.env.REFRESH_SECRET_KEY as string;
 const ACCESS_SECRET_KEY = process.env.ACCESS_SECRET_KEY as string;
 export const refreshAccessToken = async (refreshToken: string): Promise<{ success: boolean; accessToken?: string; message: string }> => {
@@ -208,8 +204,7 @@ export const refreshAccessToken = async (refreshToken: string): Promise<{ succes
     };
   }
 };
-
-//sendResetPasswordEmail
+// Enviar correo de recuperación de contraseña
 const RESET_SECRET = process.env.RESET_SECRET_KEY as string;
 export const sendResetPasswordEmail = async (correo: string) => {
   const usuario = await Usuarios.findOne({ where: { correo } });
@@ -259,7 +254,7 @@ export const sendResetPasswordEmail = async (correo: string) => {
 
   return { success: true, message: 'Correo de recuperación enviado' };
 };
-
+//Validar el token de restablecimiento de contraseña
 export const validateResetToken = async (token: string) => {
   try {
     const decoded = jwt.verify(token, RESET_SECRET);
@@ -275,7 +270,7 @@ export const validateResetToken = async (token: string) => {
     };
   }
 };
-
+// Restablecer la contraseña
 export const resetPassword = async (token: string, nuevaContraseña: string) => {
   try {
     const decoded = jwt.verify(token, RESET_SECRET) as { correo: string };
