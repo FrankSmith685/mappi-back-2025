@@ -1,5 +1,6 @@
 import { Sequelize, DataTypes, Model } from 'sequelize';
-import { UbigeoAttributes, UbigeoCreationAttributes } from '../interfaces/IUbigeos';
+import { UbigeoAttributes, UbigeoCreationAttributes } from '../interfaces/ubigeos';
+// import { UbigeoAttributes, UbigeoCreationAttributes } from '../interfaces/IUbigeos';
 
 export default (sequelize: Sequelize) => {
   sequelize.define<Model<UbigeoAttributes, UbigeoCreationAttributes>>(

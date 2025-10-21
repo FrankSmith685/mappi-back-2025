@@ -2,15 +2,34 @@ import { Router, Request, Response } from 'express';
 import { loginUser, refreshAccessToken, registerUser, resetPassword, sendResetPasswordEmail, validateResetToken } from '../controllers/authController';
 import { createVerifierHandler } from '../helpers/verifierHandler';
 import { createCredentialHandler, createRegisterHandler } from '../helpers/credentialsHandler';
+import { loginUserController, registerUserController } from '../controllers/auth.controller';
+
 
 
 const router = Router();
 
-// router.get('/verify-email', createVerifierHandler('email', verifyEmail));
+//Ruta de iniciar sesión
+router.post("/login", async (req: Request, res: Response) => {
+  try {
+    const result = await loginUserController(req.body);
+    return res.status(200).json(result);
+  } catch (error: any) {
+    return res.status(400).json({
+      success: false,
+      message: error.message || "Error al iniciar sesión.",
+    });
+  }
+});
 
-router.post('/login', createCredentialHandler(loginUser));
-
-router.post('/register', createRegisterHandler(registerUser));
+// Ruta de registro
+router.post("/register", async (req: Request, res: Response) => {
+  try {
+    const result = await registerUserController(req.body);
+    res.json(result);
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
 
 router.post("/refresh-token",async(req: Request, res: Response)=>{
     try{

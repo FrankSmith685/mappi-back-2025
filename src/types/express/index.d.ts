@@ -1,6 +1,7 @@
-import { TokenPayload } from '../../utils/auth'; // ajusta la ruta según tu proyecto
+import "express";
+import { TokenPayload } from "../../interfaces/auth";
 
-declare module 'express-serve-static-core' {
+declare module "express-serve-static-core" {
   interface Request {
     user?: TokenPayload;
   }

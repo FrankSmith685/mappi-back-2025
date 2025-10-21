@@ -1,5 +1,6 @@
 import { Sequelize, DataTypes, Model } from 'sequelize';
-import { DireccionCreationAttributes, DireccionAttributes } from '../interfaces/IDirecciones';
+import { DireccionAttributes, DireccionCreationAttributes } from '../interfaces/ubigeos';
+// import { DireccionCreationAttributes, DireccionAttributes } from '../interfaces/IDirecciones';
 
 export default (sequelize: Sequelize) => {
   sequelize.define<Model<DireccionAttributes, DireccionCreationAttributes>>(

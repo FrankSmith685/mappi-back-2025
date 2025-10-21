@@ -1,9 +1,8 @@
-// models/usuarios_login.ts
 import { Sequelize, DataTypes, Model } from 'sequelize';
 import {
   UsuarioLoginAttributes,
   UsuarioLoginCreationAttributes,
-} from '../interfaces/IUsuarioLogin';
+} from '../interfaces/usuarios';
 
 export default (sequelize: Sequelize) => {
   sequelize.define<Model<UsuarioLoginAttributes, UsuarioLoginCreationAttributes>>(

@@ -1,0 +1,1 @@
+export type EntidadProvider = 'servicio' | 'usuario' | 'empresa';

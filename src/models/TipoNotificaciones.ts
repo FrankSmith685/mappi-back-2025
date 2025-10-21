@@ -1,6 +1,7 @@
 // src/models/TipoNotificaciones.ts
 import { Sequelize, DataTypes, Model } from 'sequelize';
-import { TipoNotificacionAttributes, TipoNotificacionCreationAttributes } from '../interfaces/ITipoNotificacion';
+import { TipoNotificacionAttributes, TipoNotificacionCreationAttributes } from '../interfaces/notificaciones.ts';
+// import { TipoNotificacionAttributes, TipoNotificacionCreationAttributes } from '../interfaces/ITipoNotificacion';
 
 export default (sequelize: Sequelize) => {
   sequelize.define<Model<TipoNotificacionAttributes, TipoNotificacionCreationAttributes>>(

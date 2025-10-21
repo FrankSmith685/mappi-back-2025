@@ -1,9 +1,10 @@
 // models/usuarioTipoNotificaciones.ts
 import { Sequelize, DataTypes, Model } from 'sequelize';
-import {
-  UsuarioTipoNotificacionAttributes,
-  UsuarioTipoNotificacionCreationAttributes,
-} from '../interfaces/IUsuarioTipoNotificacion';
+import { UsuarioTipoNotificacionAttributes, UsuarioTipoNotificacionCreationAttributes } from '../interfaces/usuarios/IUsuarioTipoNotificacion';
+// import {
+//   UsuarioTipoNotificacionAttributes,
+//   UsuarioTipoNotificacionCreationAttributes,
+// } from '../interfaces/IUsuarioTipoNotificacion';
 
 export default (sequelize: Sequelize) => {
   sequelize.define<Model<UsuarioTipoNotificacionAttributes, UsuarioTipoNotificacionCreationAttributes>>(

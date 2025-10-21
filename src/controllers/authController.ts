@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import { sequelize } from '../db';
 import { Model } from 'sequelize';
 import { UsuarioAttributes, UsuarioCreationAttributes } from '../interfaces/IUsuario';
-import { createAuthResponse } from '../helpers/authHelpers';
+import { createAuthResponse } from '../helpers/auth.helpers';
 import jwt from 'jsonwebtoken';
 import { sendEmail } from '../config/nodemailer/emailSender';
 import { DateTime } from "luxon";

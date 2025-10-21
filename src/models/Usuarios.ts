@@ -2,7 +2,7 @@ import { Sequelize, DataTypes, Model } from 'sequelize';
 import {
   UsuarioAttributes,
   UsuarioCreationAttributes,
-} from '../interfaces/IUsuario';
+} from '../interfaces/usuarios';
 export default (sequelize: Sequelize) => {
   sequelize.define<Model<UsuarioAttributes, UsuarioCreationAttributes>>(
     'Usuarios',

@@ -1,5 +1,6 @@
 import { Sequelize, DataTypes, Model } from 'sequelize';
-import { UsuarioRolAttributes, UsuarioRolCreationAttributes } from '../interfaces/IUsuario_Roles';
+import { UsuarioRolAttributes, UsuarioRolCreationAttributes } from '../interfaces/usuarios';
+// import { UsuarioRolAttributes, UsuarioRolCreationAttributes } from '../interfaces/IUsuario_Roles';
 
 export default (sequelize: Sequelize) => {
   sequelize.define<Model<UsuarioRolAttributes, UsuarioRolCreationAttributes>>(
