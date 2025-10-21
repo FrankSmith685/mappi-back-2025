@@ -83,7 +83,7 @@ export interface ServicioData {
   fechaRegistro?: string;            // SERV_FechaRegistro
   cod_usuario?: string;              // USUA_Interno
   subcategoria?: SubcategoriaData | null;
-  direccion?: DireccionData | null; // ✅ AGREGA ESTO
+  direccion?: DireccionData | null;
   archivos?: ArchivoData[];
   usuario?: UsuarioData | null;
   empresa?: EmpresaData | null;

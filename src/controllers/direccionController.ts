@@ -33,7 +33,7 @@ export const saveDireccion = async (req: Request, res: Response) => {
       predeterminado: boolean;
     };
 
-    // ✅ Validación de datos obligatorios
+    // Validación de datos obligatorios
     if (!cod_entidad || !tipo_entidad || !direccion || !codigoUbigeo) {
       await transaction.rollback();
       return res.status(400).json({
@@ -43,7 +43,7 @@ export const saveDireccion = async (req: Request, res: Response) => {
       });
     }
 
-    // 🔍 Verificar si ya existe una dirección para esa entidad
+    //  Verificar si ya existe una dirección para esa entidad
     const direccionExistente = await Direcciones.findOne({
       where: {
         DIUS_Cod_Entidad: cod_entidad,
@@ -60,7 +60,7 @@ export const saveDireccion = async (req: Request, res: Response) => {
       });
     }
 
-    // 🆕 Crear nueva dirección
+    // Crear nueva dirección
     await Direcciones.create(
       {
         DIUS_Tipo: "principal",
@@ -134,7 +134,7 @@ export const getDireccionByEntidad = async (req: Request, res: Response) => {
       data: direccion,
     });
   } catch (error: any) {
-    console.error("❌ Error obteniendo dirección:", error);
+    console.error("Error obteniendo dirección:", error);
     return res.status(500).json({
       success: false,
       message: "Ocurrió un error al obtener la dirección",
@@ -168,7 +168,7 @@ export const updateDireccion = async (req: Request, res: Response) => {
       predeterminado?: boolean;
     };
 
-    // ✅ Validación de datos esenciales
+    // Validación de datos esenciales
     if (!cod_entidad || !tipo_entidad) {
       await transaction.rollback();
       return res.status(400).json({
@@ -187,7 +187,7 @@ export const updateDireccion = async (req: Request, res: Response) => {
     });
 
     if (direccionExistente) {
-      // 📝 Si existe, la actualizamos
+      // Si existe, la actualizamos
       await direccionExistente.update(
         {
           DIUS_Direccion: direccion ?? direccionExistente.get("DIUS_Direccion"),
@@ -210,7 +210,7 @@ export const updateDireccion = async (req: Request, res: Response) => {
       });
     }
 
-    // 🆕 Si no existe, la creamos
+    // Si no existe, la creamos
     const nuevaDireccion = await Direcciones.create(
       {
         DIUS_Tipo: "principal",

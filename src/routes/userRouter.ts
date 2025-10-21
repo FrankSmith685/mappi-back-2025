@@ -208,7 +208,7 @@ const router = Router();
             message: 'El idToken de Google es requerido para eliminar cuenta con Google',
           });
         }
-        result = await deleteUserAccountGoogle(userInfo.data.cod_usuario, idToken); // 👈 aquí va idToken, no cod_usuario
+        result = await deleteUserAccountGoogle(userInfo.data.cod_usuario, idToken);
 
       } else {
         return res.status(400).json({

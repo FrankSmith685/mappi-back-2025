@@ -64,7 +64,7 @@ export const getCursosByUsuario = async (
   data: any[];
 }> => {
   try {
-    // 🔹 Obtener todos los cursos con sus módulos ordenados
+    // Obtener todos los cursos con sus módulos ordenados
     const cursos = await Cursos.findAll({
       where: { CURS_Tipo: tipo },
       include: [
@@ -89,13 +89,13 @@ export const getCursosByUsuario = async (
       throw new Error(`No se encontraron cursos de tipo ${tipo}`);
     }
 
-    // 🔹 Obtener progreso de cursos y módulos
+    // Obtener progreso de cursos y módulos
     const [usuarioCursos, usuarioModulos]: any[] = await Promise.all([
       Usuarios_Cursos.findAll({ where: { USUA_Interno }, raw: true }),
       Usuarios_Modulos.findAll({ where: { USUA_Interno }, raw: true }),
     ]);
 
-    // 🔹 Mapear cursos con estado y módulos desbloqueados
+    // Mapear cursos con estado y módulos desbloqueados
     const cursosConEstado = cursos.map((curso: any, index: number) => {
       const cursoPlain = curso.get({ plain: true });
       const cursoProgreso = usuarioCursos.find(
@@ -111,11 +111,11 @@ export const getCursosByUsuario = async (
         completado = Boolean(cursoProgreso.USUC_Completado);
         porcentaje = parseFloat(cursoProgreso.USUC_PorcentajeProgreso);
       } else {
-        // 🔓 Desbloquear primer curso si no hay progreso
+        // Desbloquear primer curso si no hay progreso
         desbloqueado = index === 0;
       }
 
-      // 🔹 Calcular módulos con su progreso
+      // Calcular módulos con su progreso
       const modulosConEstado = cursoPlain.ModulosCursos.map(
         (modulo: any, modIndex: number) => {
           const moduloProgreso = usuarioModulos.find(
@@ -131,7 +131,7 @@ export const getCursosByUsuario = async (
             completadoModulo = Boolean(moduloProgreso.USUM_Completado);
             porcentajeModulo = parseFloat(moduloProgreso.USUM_PorcentajeProgreso);
           } else {
-            // 🔓 Si no hay progreso, desbloquear solo el primer módulo del curso
+            // Si no hay progreso, desbloquear solo el primer módulo del curso
             desbloqueadoModulo = modIndex === 0;
           }
 
@@ -144,7 +144,7 @@ export const getCursosByUsuario = async (
         }
       );
 
-      // 🧩 Nueva lógica: desbloquear automáticamente el siguiente módulo si el anterior está completado
+      // Nueva lógica: desbloquear automáticamente el siguiente módulo si el anterior está completado
       for (let i = 0; i < modulosConEstado.length - 1; i++) {
         if (modulosConEstado[i].completado) {
           modulosConEstado[i + 1].desbloqueado = true;
@@ -201,7 +201,7 @@ export const guardarProgresoCursoYModulo = async (params: {
   MODU_Id: number;
   porcentajeModulo: number; // 0-100
   completadoModulo: boolean;
-  tiempoActual?: number; // 👈 nuevo parámetro opcional
+  tiempoActual?: number; // nuevo parámetro opcional
 }) => {
   const {
     USUA_Interno,
@@ -215,7 +215,7 @@ export const guardarProgresoCursoYModulo = async (params: {
   const transaction = await sequelize.transaction();
 
   try {
-    // 🧩 1️⃣ Buscar módulo y curso
+    // Buscar módulo y curso
     const modulo = (await ModulosCurso.findOne({
       where: { MODU_Id },
       raw: true,
@@ -223,14 +223,14 @@ export const guardarProgresoCursoYModulo = async (params: {
 
     if (!modulo) throw new Error("Módulo no encontrado");
 
-    // 🟢 2️⃣ Crear o actualizar registro en Usuarios_Modulos
+    // Crear o actualizar registro en Usuarios_Modulos
     const usuarioModuloExistente = await Usuarios_Modulos.findOne({
       where: { USUA_Interno, MODU_Id },
       transaction,
     });
 
     if (usuarioModuloExistente) {
-      // 🔸 Actualizamos el progreso existente
+      //  Actualizamos el progreso existente
       await usuarioModuloExistente.update(
         {
           USUM_PorcentajeProgreso: porcentajeModulo,
@@ -244,7 +244,7 @@ export const guardarProgresoCursoYModulo = async (params: {
         { transaction }
       );
     } else {
-      // 🔸 Creamos un nuevo registro
+      // Creamos un nuevo registro
       await Usuarios_Modulos.create(
         {
           USUA_Interno,
@@ -262,7 +262,7 @@ export const guardarProgresoCursoYModulo = async (params: {
     }
 
     // =======================
-// 🟣 3️⃣ Calcular progreso total del curso
+// Calcular progreso total del curso
 // =======================
 const modulosCurso = (await ModulosCurso.findAll({
   where: { CURS_Id },
@@ -279,7 +279,7 @@ let modulosUsuarioCurso = modulosUsuario.filter((u) =>
   modulosCursoIds.includes(u.MODU_Id)
 );
 
-// ⚡️ Actualizar manualmente el módulo actual (por si el query aún no refleja el update)
+// Actualizar manualmente el módulo actual (por si el query aún no refleja el update)
 const existeEnMemoria = modulosUsuarioCurso.find((u) => u.MODU_Id === MODU_Id);
 if (existeEnMemoria) {
   existeEnMemoria.USUM_PorcentajeProgreso = porcentajeModulo;
@@ -294,7 +294,7 @@ if (existeEnMemoria) {
   });
 }
 
-// 📈 Calcular promedio de progreso
+// Calcular promedio de progreso
 const porcentajeTotal =
   modulosUsuarioCurso.length > 0
     ? modulosUsuarioCurso.reduce(
@@ -303,7 +303,7 @@ const porcentajeTotal =
       ) / modulosCurso.length
     : 0;
 
-// ✅ Considerar curso completado si TODOS los módulos están completados O si el progreso total es 100%
+// Considerar curso completado si TODOS los módulos están completados O si el progreso total es 100%
 const completadoCurso =
   modulosCurso.length > 0 &&
   (
@@ -317,7 +317,7 @@ const completadoCurso =
 
 
 
-// 🔵 Crear o actualizar el curso del usuario
+// Crear o actualizar el curso del usuario
 const [usuarioCurso, creado] = await Usuarios_Cursos.findOrCreate({
   where: { USUA_Interno, CURS_Id },
   defaults: {
@@ -333,7 +333,7 @@ const [usuarioCurso, creado] = await Usuarios_Cursos.findOrCreate({
   transaction,
 });
 
-// 🟩 Si ya existía, lo actualizamos con los datos nuevos
+// Si ya existía, lo actualizamos con los datos nuevos
 if (!creado) {
   await usuarioCurso.update(
     {
@@ -355,30 +355,30 @@ if (!creado) {
 
 
 
-// 🧠 Si el curso fue completado, log especial
+// Si el curso fue completado, log especial
 if (completadoCurso) {
   console.log(
-    `🎉 Curso ${CURS_Id} COMPLETADO por ${USUA_Interno} — Fecha: ${new Date().toISOString()}`
+    `Curso ${CURS_Id} COMPLETADO por ${USUA_Interno} — Fecha: ${new Date().toISOString()}`
   );
 }
 
 
 
 
-    // ✅ Guardar cambios
+    // Guardar cambios
     await transaction.commit();
 
-    console.log("✅ Guardado curso:", {
+    console.log("Guardado curso:", {
       CURS_Id,
       porcentajeTotal,
       completadoCurso,
     });
 
 
-    // 🔁 Retornar respuesta
+    //  Retornar respuesta
     return {
       success: true,
-      message: "✅ Progreso guardado correctamente",
+      message: "Progreso guardado correctamente",
       data: {
         curso: {
           CURS_Id,

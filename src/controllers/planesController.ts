@@ -8,7 +8,7 @@ import { TipoPlanAttributes } from "../interfaces/ITipoPlanes";
 const { Planes, PlanesBeneficios, TipoPlanes } = sequelize.models;
 
 /**
- * 🔹 Obtener planes según tipo de usuario (empresa o independiente)
+ * Obtener planes según tipo de usuario (empresa o independiente)
  */export const getPlanesByTipoUsuario = async (
   tipoUsuario: "empresa" | "independiente"
 ): Promise<{ success: boolean; message: string; data: any[] }> => {
@@ -77,7 +77,7 @@ const { Planes, PlanesBeneficios, TipoPlanes } = sequelize.models;
 
 
 /**
- * 🔹 Obtener todos los planes (filtrando beneficios por tipo de usuario)
+ * Obtener todos los planes (filtrando beneficios por tipo de usuario)
  */
 export const getTodosLosPlanes = async (): Promise<{
   success: boolean;
@@ -114,7 +114,7 @@ export const getTodosLosPlanes = async (): Promise<{
       throw new Error("No se encontraron planes registrados.");
     }
 
-    // ✅ Filtramos los beneficios por PLAN_Id, PLAN_TipoUsuario y TIPL_Id
+    // Filtramos los beneficios por PLAN_Id, PLAN_TipoUsuario y TIPL_Id
     const planesFiltrados = planes.map((plan: any) => {
       const plain = plan.get({ plain: true });
 
@@ -127,9 +127,6 @@ export const getTodosLosPlanes = async (): Promise<{
 
       return plain;
     });
-
-    console.log("✅ Planes obtenidos:", planes.length);
-    console.log("✅ Planes filtrados:", planesFiltrados.length);
 
     return {
       success: true,

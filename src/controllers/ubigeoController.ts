@@ -126,7 +126,7 @@ export const getUbigeoByCoords = async (
 
     if (!res.ok) throw new Error(`Error en la petición: ${res.status}`);
 
-    // 👇 Aquí forzamos a que el JSON sea de tipo NominatimResponse
+    // Aquí forzamos a que el JSON sea de tipo NominatimResponse
     const data = (await res.json()) as NominatimResponse;
 
     const dep = data.address.state || "";
@@ -134,7 +134,7 @@ export const getUbigeoByCoords = async (
     let dist = data.address.suburb || data.address.county || "";
     const direccion = data.display_name || "";
 
-    // 🔹 Corrección especial para Callao
+    // Corrección especial para Callao
     if (dep.toLowerCase() === "callao") {
       prov = "Callao";
       dist = data.address.city || data.address.town || data.address.suburb || dist;
@@ -337,7 +337,7 @@ export const getDepartamentosConServiciosActivos = async (): Promise<
     type Direccion = { DIUS_CodigoUbigeo: string; DIUS_Cod_Entidad: string };
     type Servicio = { SERV_Interno: string };
 
-    // 1️⃣ Obtener todos los ubigeos (distritos) con su departamento
+    //  Obtener todos los ubigeos (distritos) con su departamento
     const ubigeos = (await Ubigeos.findAll({
       attributes: ["UBIG_Codigo", "UBIG_Departamento"],
       raw: true,
@@ -352,14 +352,14 @@ export const getDepartamentosConServiciosActivos = async (): Promise<
       }
     }
 
-    // 2️⃣ Direcciones de tipo servicio
+    //  Direcciones de tipo servicio
     const direccionesServicios = (await Direcciones.findAll({
       attributes: ["DIUS_CodigoUbigeo", "DIUS_Cod_Entidad"],
       where: { DIUS_Tipo_Entidad: "servicio" },
       raw: true,
     })) as unknown as Direccion[];
 
-    // 3️⃣ Servicios activos
+    // Servicios activos
     const serviciosActivos = (await Servicios.findAll({
       where: { SERV_Estado: true },
       attributes: ["SERV_Interno"],
@@ -368,7 +368,7 @@ export const getDepartamentosConServiciosActivos = async (): Promise<
 
     const serviciosActivosSet = new Set(serviciosActivos.map(s => s.SERV_Interno));
 
-    // 4️⃣ Contar servicios activos por departamento
+    //  Contar servicios activos por departamento
     const conteoServiciosPorDepartamento: Record<string, number> = {};
 
     for (const dir of direccionesServicios) {
@@ -379,7 +379,7 @@ export const getDepartamentosConServiciosActivos = async (): Promise<
       }
     }
 
-    // 5️⃣ Siempre devolver todos los departamentos, incluso si tienen 0 servicios
+    //  Siempre devolver todos los departamentos, incluso si tienen 0 servicios
     const resultado = Array.from(mapaDepartamentos.entries()).map(([codigo, nombre]) => ({
       codigo_ubigeo: codigo,
       departamento: nombre,
@@ -388,7 +388,7 @@ export const getDepartamentosConServiciosActivos = async (): Promise<
 
     return resultado;
   } catch (error: any) {
-    console.error("❌ Error al obtener departamentos con servicios activos:", error);
+    console.error(" Error al obtener departamentos con servicios activos:", error);
     return [];
   }
 };

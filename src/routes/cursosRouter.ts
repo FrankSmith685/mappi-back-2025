@@ -6,7 +6,7 @@ import { getUserInfo } from "../controllers/userController";
 const router = Router();
 
 /**
- * 🔹 Obtener todos los cursos (con módulos incluidos)
+ * Obtener todos los cursos (con módulos incluidos)
  */
 router.get(
   "/obtener-cursos",
@@ -25,7 +25,7 @@ router.get(
 
 router.get(
   "/obtener-cursos/:tipo",
-  authenticate, // 👈 protegida con autenticación
+  authenticate, // protegida con autenticación
   async (req: Request, res: Response): Promise<Response> => {
     try {
       const { tipo } = req.params;
@@ -116,7 +116,7 @@ router.post(
         MODU_Id: Number(MODU_Id),
         porcentajeModulo: Number(porcentajeModulo) || 0,
         completadoModulo: Boolean(completadoModulo),
-        tiempoActual: Number(tiempoActual) || 0, // ✅ agregado
+        tiempoActual: Number(tiempoActual) || 0,
       });
 
       return res.status(200).json(result);

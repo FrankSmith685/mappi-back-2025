@@ -472,7 +472,7 @@ export const getServiciosActivos = async (): Promise<{
   servicios: ServicioData[];
 }> => {
   try {
-    // 1️⃣ Obtener servicios activos con categorías, direcciones y archivos
+    // Obtener servicios activos con categorías, direcciones y archivos
     const servicios = (await Servicios.findAll({
       where: { SERV_Estado: true },
       include: [
@@ -523,7 +523,7 @@ export const getServiciosActivos = async (): Promise<{
       order: [["SERV_FechaRegistro", "DESC"]],
     })) as Model<any, any>[];
 
-    // 2️⃣ Mapear resultados
+    // Mapear resultados
     const serviciosData: ServicioData[] = servicios.map((s) => {
       const servicio = s.get({ plain: true });
 
@@ -584,7 +584,7 @@ export const getServiciosActivos = async (): Promise<{
       };
     });
 
-    // 3️⃣ Calcular total
+    //  Calcular total
     const totalServicios = serviciosData.length;
 
     return {

@@ -7,10 +7,6 @@ import {
 
 const router = Router();
 
-/**
- * 📘 Obtener planes filtrados por tipo de usuario
- * Ejemplo: GET /planes?tipo=empresa  o  GET /planes?tipo=independiente
- */
 router.get(
   "/obtener-planes",
   authenticate,

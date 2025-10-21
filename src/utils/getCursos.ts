@@ -185,7 +185,7 @@ export const getCursos = async (): Promise<void> => {
           CURS_Tipo: curso.CURS_Tipo as "audio" | "video",
           CURS_Autor: curso.CURS_Autor,
           CURS_Avatar: curso.CURS_Avatar,
-          CURS_Estado: curso.CURS_Estado,
+          CURS_Estado: curso.CURS_Estado || false,
         });
 
         // Guardar módulos relacionados
@@ -203,11 +203,11 @@ export const getCursos = async (): Promise<void> => {
         await ModulosCurso.bulkCreate(modulosData);
       }
 
-      console.log("✅ Se agregaron cursos y módulos predeterminados");
+      console.log("Se agregaron cursos y módulos predeterminados");
     } else {
-      console.log("ℹ️ Ya existen cursos en la base de datos");
+      console.log(" Ya existen cursos en la base de datos");
     }
   } catch (error: any) {
-    console.log("❌ Error al sembrar cursos: " + error.message);
+    console.log("Error al sembrar cursos: " + error.message);
   }
 };

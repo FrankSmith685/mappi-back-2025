@@ -35,7 +35,7 @@ export const getAvisos = async (
               attributes: ["SUBC_Id", "SUBC_Nombre", "SUBC_Descripcion"],
             },
             {
-              // 👇 Incluir logo del servicio
+              // Incluir logo del servicio
               model: Archivos,
               as: "Archivos",
               required: false,
@@ -76,15 +76,15 @@ export const getAvisos = async (
       aviso.get({ plain: true })
     );
 
-    // 🔹 Consultas pendientes = todos los borradores
+    // Consultas pendientes = todos los borradores
     const consultas_pendientes = 0;
 
-    // 🔹 Avisos incompletos = borradores con progreso menor a 100
+    // Avisos incompletos = borradores con progreso menor a 100
     const avisos_incompletos = avisosPlain.filter(
       (a) => a.AVIS_Estado === "borrador" && a.AVIS_Progreso < 100
     ).length;
 
-    // 🔹 Avisos duplicados = mismo SERV_Interno repetido
+    // Avisos duplicados = mismo SERV_Interno repetido
     const duplicados = new Set<string>();
     const vistos = new Set<string>();
     avisosPlain.forEach((a) => {
@@ -95,7 +95,7 @@ export const getAvisos = async (
     });
     const avisos_duplicados = duplicados.size;
 
-    // 🔹 Reportes pendientes = pausados o eliminados sin publicación
+    // Reportes pendientes = pausados o eliminados sin publicación
     const reportes_pendientes = avisosPlain.filter(
       (a) =>
         (a.AVIS_Estado === "pausado" || a.AVIS_Estado === "eliminado") &&
@@ -154,7 +154,7 @@ export const createAviso = async (
 // Actualizar un aviso
 export const updateAviso = async (
   id: number,
-  data: Partial<AvisoAttributes> & { isCompleted?: number } // 👈 añadimos el campo opcional
+  data: Partial<AvisoAttributes> & { isCompleted?: number } //añadimos el campo opcional
 ): Promise<{ success: boolean; message: string; data?: AvisoAttributes }> => {
   try {
     const aviso = await Avisos.findByPk(id);

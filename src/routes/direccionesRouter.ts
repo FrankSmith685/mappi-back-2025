@@ -7,22 +7,6 @@ import { getDireccionByEntidad, saveDireccion, updateDireccion } from "../contro
 
 const router = Router();
 
-
-
-
-
-/**
- * 🔹 Subcategorías con servicios activos por departamento y categoría
- * Ejemplo: GET /direcciones/subcategorias/activos/15/2
- */
-
-
-/**
- * 🧩 Crear una nueva dirección
- * - Requiere autenticación
- * - Puede ser tipo: usuario, empresa o servicio
- * - Si ya existe una dirección para esa entidad, devuelve error 409
- */
 router.post("/create", authenticate, async (req: Request, res: Response) => {
   try {
     const usernameFromToken = req.user?.username;
@@ -46,7 +30,7 @@ router.post("/create", authenticate, async (req: Request, res: Response) => {
     let tipo_entidad = req.body.tipo_entidad || "usuario";
     let cod_entidad = req.body.cod_entidad;
 
-    // 🔍 Si no se envía cod_entidad, lo inferimos automáticamente
+    // Si no se envía cod_entidad, lo inferimos automáticamente
     if (!cod_entidad) {
       if (tipo_entidad === "usuario") {
         cod_entidad = userInfo.data.cod_usuario;
@@ -117,7 +101,7 @@ router.put("/update", authenticate, async (req: Request, res: Response) => {
     let tipo_entidad = req.body.tipo_entidad || "usuario";
     let cod_entidad = req.body.cod_entidad;
 
-    // 🔍 Inferir automáticamente el código de entidad si no se envía
+    // Inferir automáticamente el código de entidad si no se envía
     if (!cod_entidad) {
       if (tipo_entidad === "usuario") {
         cod_entidad = userInfo.data.cod_usuario;
@@ -142,7 +126,7 @@ router.put("/update", authenticate, async (req: Request, res: Response) => {
     req.body.cod_entidad = cod_entidad;
     req.body.tipo_entidad = tipo_entidad;
 
-    // ✅ Ejecutar la función del controlador
+    // Ejecutar la función del controlador
     return updateDireccion(req, res);
   } catch (error: any) {
     console.error("Error en PUT /direcciones/update:", error);

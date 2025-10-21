@@ -25,7 +25,7 @@ export const crearPlanUsuario = async ({
   const transaction = await sequelize.transaction();
 
   try {
-    // 🔹 Buscar el plan elegido según el tipo de usuario
+    // Buscar el plan elegido según el tipo de usuario
     const planRecord = await Planes.findOne({
       where: { PLAN_Id, PLAN_TipoUsuario: PLAN_Tipo_Usuario },
     });
@@ -38,7 +38,7 @@ export const crearPlanUsuario = async ({
 
     const plan = planRecord.get({ plain: true }) as PlanAttributes;
 
-    // 🔹 Convertir precio
+    // Convertir precio
     const precioNuevo =
       typeof plan.PLAN_Precio === "string"
         ? parseFloat(plan.PLAN_Precio)
@@ -46,7 +46,7 @@ export const crearPlanUsuario = async ({
 
     const esGratis = precioNuevo === 0;
 
-    // 🔹 Validar duplicado de plan gratuito
+    // Validar duplicado de plan gratuito
     if (esGratis) {
       const planGratisActivo = await PlanesUsuarios.findOne({
         where: { USUA_Interno, PLUS_EstadoPago: "gratuito", PLUS_EstadoPlan: "activo", },
@@ -68,7 +68,7 @@ export const crearPlanUsuario = async ({
       }
     }
 
-    // 🔹 Buscar el plan activo actual
+    // Buscar el plan activo actual
     const planActivo = await PlanesUsuarios.findOne({
       where: { USUA_Interno, PLUS_EstadoPlan: "activo"},
       order: [["PLUS_FechaExpiracion", "DESC"]],
@@ -88,14 +88,14 @@ export const crearPlanUsuario = async ({
         const planActivoId = planActivo.get("PLAN_Id") as number;
         const precioAnterior = planActivo.get("PLUS_MontoPagado") as number;
 
-        // ⚠️ Evitar repetir el mismo plan
+        // Evitar repetir el mismo plan
         if (planActivoId === PLAN_Id) {
           throw new Error(
             "Ya tienes este mismo plan activo. No puedes comprarlo nuevamente hasta que expire."
           );
         }
 
-        // 🔹 Calcular prorrateo con la función reutilizable
+        // Calcular prorrateo con la función reutilizable
         const { saldoRestante } = calcularProrrateo(
           precioAnterior,
           fechaInicioAnterior,
@@ -103,7 +103,7 @@ export const crearPlanUsuario = async ({
           ahora
         );
 
-        // 🔹 Calcular monto final
+        // Calcular monto final
         if (precioNuevo > precioAnterior) {
           montoFinal = precioNuevo - saldoRestante;
           if (montoFinal < 0) montoFinal = 0;
@@ -113,7 +113,7 @@ export const crearPlanUsuario = async ({
           );
         }
 
-        // 🔹 Desactivar plan anterior
+        // Desactivar plan anterior
         await planActivo.update(
           {
             PLUS_FechaExpiracion: ahora,
@@ -124,12 +124,12 @@ export const crearPlanUsuario = async ({
       }
     }
 
-    // 🔹 Calcular fechas del nuevo plan
+    // Calcular fechas del nuevo plan
     const fechaInicio = new Date();
     const fechaExpiracion = new Date(fechaInicio);
     fechaExpiracion.setMonth(fechaInicio.getMonth() + plan.PLAN_DuracionMeses);
 
-    // 🔹 Crear el nuevo registro
+    // Crear el nuevo registro
     const nuevoPlanUsuario = await PlanesUsuarios.create(
       {
         USUA_Interno,
@@ -181,18 +181,18 @@ export const getPlanesConProrrateo = async (
   try {
     const ahora = new Date();
 
-    // 1️⃣ Buscar plan activo actual
+    //  Buscar plan activo actual
     const planActivo = await PlanesUsuarios.findOne({
       where: { USUA_Interno, PLUS_EstadoPlan: "activo" },
       order: [["PLUS_FechaExpiracion", "DESC"]],
     });
 
-    // 2️⃣ Obtener todos los planes del tipo de usuario
+    //  Obtener todos los planes del tipo de usuario
     const planesDisponibles = await Planes.findAll({
       where: { PLAN_TipoUsuario: PLAN_Tipo_Usuario },
     });
 
-    // ⚠️ Si no hay plan activo → devolver todos sin prorrateo
+    //  Si no hay plan activo → devolver todos sin prorrateo
     if (!planActivo) {
       const data = planesDisponibles.map((plan: any) => ({
         PLAN_Id: plan.PLAN_Id,
@@ -212,11 +212,11 @@ export const getPlanesConProrrateo = async (
       };
     }
 
-    // 3️⃣ Datos del plan activo
+    //  Datos del plan activo
     const planActivoData = planActivo.get({ plain: true });
     const planActivoId = planActivoData.PLAN_Id;
 
-    // 🔹 Buscar el plan anterior en la tabla Planes para obtener su precio original
+    //  Buscar el plan anterior en la tabla Planes para obtener su precio original
     const planAnterior = await Planes.findByPk(planActivoId);
     const precioAnterior = planAnterior
       ? parseFloat(planAnterior.get({ plain: true }).PLAN_Precio)
@@ -226,11 +226,11 @@ export const getPlanesConProrrateo = async (
     const fechaInicioAnterior = new Date(planActivoData.PLUS_FechaInicio);
     const fechaExpiracionAnterior = new Date(planActivoData.PLUS_FechaExpiracion);
 
-    // 4️⃣ Calcular prorrateo solo para los planes más caros
+    //  Calcular prorrateo solo para los planes más caros
     const resultado = planesDisponibles.map((plan: any) => {
       const precioNuevo = parseFloat(plan.PLAN_Precio);
 
-      // 🟣 Mismo plan → no aplica prorrateo
+      //  Mismo plan → no aplica prorrateo
       if (plan.PLAN_Id === planActivoId) {
         return {
           PLAN_Id: plan.PLAN_Id,
@@ -244,7 +244,7 @@ export const getPlanesConProrrateo = async (
         };
       }
 
-      // 🟡 Si el nuevo plan es más barato o igual → no se aplica prorrateo
+      //  Si el nuevo plan es más barato o igual → no se aplica prorrateo
       if (precioNuevo <= precioAnterior) {
         return {
           PLAN_Id: plan.PLAN_Id,
@@ -258,7 +258,7 @@ export const getPlanesConProrrateo = async (
         };
       }
 
-      // 🟢 Calcular saldo restante si el nuevo plan es superior
+      //  Calcular saldo restante si el nuevo plan es superior
       const { saldoRestante, diasRestantes } = calcularProrrateo(
         precioAnterior,
         fechaInicioAnterior,
@@ -326,7 +326,7 @@ export const getPlanesUsuarioActivos = async (USUA_Interno: string) => {
       };
     }
 
-    // 🔹 Mapeo del resultado con datos limpios
+    //  Mapeo del resultado con datos limpios
     const resultado = planesActivos.map((plan: any) => ({
       USUA_Interno: plan.USUA_Interno,
       PLAN_Id: plan.PLAN_Id,
@@ -400,7 +400,7 @@ export const getPlanesUsuario = async (USUA_Interno: string) => {
       };
     }
 
-    // 🔹 Mapeo limpio
+    //  Mapeo limpio
     const resultado = planesUsuario.map((plan: any) => ({
       USUA_Interno: plan.USUA_Interno,
       PLAN_Id: plan.PLAN_Id,
@@ -425,7 +425,7 @@ export const getPlanesUsuario = async (USUA_Interno: string) => {
             TipoPlan: plan.Plan.TipoPlan
               ? {
                   TIPL_Id: plan.Plan.TipoPlan.TIPL_Id,
-                  TIPL_Nombre: plan.Plan.TipoPlan.TIPL_Nombre, // 🔹 Aquí está el nombre del plan
+                  TIPL_Nombre: plan.Plan.TipoPlan.TIPL_Nombre, //  Aquí está el nombre del plan
                 }
               : null,
           }

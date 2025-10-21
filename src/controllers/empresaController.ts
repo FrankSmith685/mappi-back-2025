@@ -53,7 +53,7 @@ export const getEmpresaByUserId = async (userId: string) => {
 
 
 // =====================
-// 🔹 Obtener empresa por ID
+// Obtener empresa por ID
 // =====================
 export const getEmpresaById = async (empresaId: string) => {
   const empresa = await Empresas.findOne({
@@ -100,7 +100,7 @@ export const getEmpresaById = async (empresaId: string) => {
 
 
 // =====================
-// 🔹 Crear o actualizar empresa
+// Crear o actualizar empresa
 // =====================
 export const createEmpresa = async (
   data: {
@@ -263,7 +263,7 @@ export const updateEmpresa = async (
 };
 
 // =====================
-// 🔹 Eliminar empresa (opcional)
+//Eliminar empresa (opcional)
 // =====================
 export const deleteEmpresa = async (empresaId: string) => {
   const transaction = await sequelize.transaction();

@@ -49,7 +49,7 @@ router.put(
 );
 
 
-// 📌 Obtener archivos por entidad
+// Obtener archivos por entidad
 router.get(
   "/:entidad/:entidadId",
   authenticate,
@@ -131,7 +131,7 @@ router.post(
   }
 );
 
-// 🔁 Actualizar múltiples archivos (borra los anteriores y sube nuevos)
+// Actualizar múltiples archivos (borra los anteriores y sube nuevos)
 router.put(
   "/update-multiple",
   authenticate,
@@ -209,7 +209,7 @@ router.delete(
   }
 );
 
-// 🗑️ Eliminar múltiples archivos
+// Eliminar múltiples archivos
 router.delete(
   "/delete-multiple",
   authenticate,

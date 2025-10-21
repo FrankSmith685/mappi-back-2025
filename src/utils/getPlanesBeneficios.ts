@@ -8,9 +8,6 @@ const PlanesBeneficios = sequelize.models.PlanesBeneficios as ModelStatic<
   Model<any, PlanBeneficioCreationAttributes>
 >;
 
-/**
- * ⚙️ Beneficios predefinidos por tipo de usuario y tipo de plan (TIPL_Id)
- */
 const beneficiosPorPlan: Record<
   "independiente" | "empresa",
   Record<number, string[]>
@@ -30,7 +27,7 @@ const beneficiosPorPlan: Record<
       "Aparece primero en resultados",
       "Curso de audios disponibles",
       "Publicar máximo hasta 2 huariques",
-      "Acceso a soporte básico por correo",
+      // "Acceso a soporte básico por correo",
     ],
     3: [
       "Aparece en el mapa por 1 año",
@@ -40,7 +37,7 @@ const beneficiosPorPlan: Record<
       "Aparece en el carrusel o sección destacada",
       "Posibilidad de subir un video (además de fotos)",
       "Publicar máximo hasta 3 huariques",
-      "Acceso a soporte prioritario por chat o correo",
+      // "Acceso a soporte prioritario por chat o correo",
     ],
   },
 
@@ -51,7 +48,7 @@ const beneficiosPorPlan: Record<
       "Sin prioridad en búsquedas",
       "Cursos de video disponibles",
       "Publicar máximo hasta 2 huariques",
-      "Panel de estadísticas básico (vistas y clics)",
+      // "Panel de estadísticas básico (vistas y clics)",
     ],
     2: [
       "Aparece en el mapa por 6 meses",
@@ -59,8 +56,8 @@ const beneficiosPorPlan: Record<
       "Alta visibilidad y prioridad en búsquedas",
       "Cursos de video disponibles",
       "Publicar máximo hasta 3 huariques",
-      "Panel de estadísticas avanzado (clics, contactos, conversiones)",
-      "Soporte técnico prioritario",
+      // "Panel de estadísticas avanzado (clics, contactos, conversiones)",
+      // "Soporte técnico prioritario",
       "Opción de destacar en el carrusel de empresas",
     ],
     3: [
@@ -70,14 +67,14 @@ const beneficiosPorPlan: Record<
       "Cursos exclusivos de video",
       "Publicar máximo hasta 5 huariques",
       "Aparece en el carrusel principal y secciones destacadas",
-      "Panel de estadísticas profesional (reportes mensuales y métricas detalladas)",
-      "Soporte VIP personalizado",
+      // "Panel de estadísticas profesional (reportes mensuales y métricas detalladas)",
+      // "Soporte VIP personalizado",
     ],
   },
 };
 
 /**
- * 🔹 Crea los beneficios asociados a cada plan y tipo de usuario
+ * Crea los beneficios asociados a cada plan y tipo de usuario
  */
 export const getPlanesBeneficios = async (): Promise<void> => {
   try {
@@ -99,7 +96,7 @@ export const getPlanesBeneficios = async (): Promise<void> => {
       const beneficios = beneficiosPorPlan[tipoUsuario]?.[tipoPlanId];
       if (!beneficios) continue;
 
-      // 🔍 Verificar si ya existen beneficios para este plan
+      // Verificar si ya existen beneficios para este plan
       const existentes = await PlanesBeneficios.count({
         where: { PLAN_Id: planId, TIPL_Id: tipoPlanId, PLAN_TipoUsuario: tipoUsuario },
       });
@@ -112,7 +109,7 @@ export const getPlanesBeneficios = async (): Promise<void> => {
         continue;
       }
 
-      // 🆕 Crear los beneficios nuevos
+      // Crear los beneficios nuevos
       const data: PlanBeneficioCreationAttributes[] = beneficios.map((descripcion) => ({
         PLAN_Id: planId,
         TIPL_Id: tipoPlanId,
@@ -124,12 +121,12 @@ export const getPlanesBeneficios = async (): Promise<void> => {
       beneficiosCreados++;
 
       console.log(
-        `✅ Beneficios agregados para el plan ${tipoUsuario} (PLAN_Id=${planId}, TIPL_Id=${tipoPlanId}).`
+        `Beneficios agregados para el plan ${tipoUsuario} (PLAN_Id=${planId}, TIPL_Id=${tipoPlanId}).`
       );
     }
 
     console.log(
-      `\n📊 Resumen: ${beneficiosCreados} plan(es) con beneficios nuevos creados, ${beneficiosExistentes} plan(es) ya tenían beneficios.`
+      `\n Resumen: ${beneficiosCreados} plan(es) con beneficios nuevos creados, ${beneficiosExistentes} plan(es) ya tenían beneficios.`
     );
   } catch (error: any) {
     console.error("❌ Error al crear los beneficios:", error.message);

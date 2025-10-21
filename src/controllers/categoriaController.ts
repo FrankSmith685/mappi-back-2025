@@ -94,14 +94,14 @@ export const getCategoriasConServiciosActivosPorDepartamento = async (
     type Subcategoria = { SUBC_Id: number; CATE_Id: number };
     type Categoria = { CATE_Id: number; CATE_Nombre: string };
 
-    // 1️⃣ Direcciones de servicios
+    // Direcciones de servicios
     const direccionesServicios = (await Direcciones.findAll({
       attributes: ["DIUS_CodigoUbigeo", "DIUS_Cod_Entidad"],
       where: { DIUS_Tipo_Entidad: "servicio" },
       raw: true,
     })) as unknown as Direccion[];
 
-    // 2️⃣ Servicios activos
+    //  Servicios activos
     const serviciosActivos = (await Servicios.findAll({
       where: { SERV_Estado: true },
       attributes: ["SERV_Interno", "SUBC_Id"],
@@ -110,7 +110,7 @@ export const getCategoriasConServiciosActivosPorDepartamento = async (
 
     const serviciosActivosSet = new Set(serviciosActivos.map(s => s.SERV_Interno));
 
-    // 3️⃣ Subcategorías y categorías
+    // Subcategorías y categorías
     const subcategorias = (await Subcategorias.findAll({
       attributes: ["SUBC_Id", "CATE_Id"],
       raw: true,
@@ -121,13 +121,13 @@ export const getCategoriasConServiciosActivosPorDepartamento = async (
       raw: true,
     })) as unknown as Categoria[];
 
-    // 4️⃣ Filtrar servicios por departamento
+    // Filtrar servicios por departamento
     const serviciosEnDepartamento = direccionesServicios
       .filter(d => d.DIUS_CodigoUbigeo.startsWith(codDepartamento))
       .map(d => d.DIUS_Cod_Entidad)
       .filter(id => serviciosActivosSet.has(id));
 
-    // 5️⃣ Contar servicios por categoría
+    // Contar servicios por categoría
     const conteoPorCategoria: Record<number, number> = {};
 
     for (const servicioId of serviciosEnDepartamento) {
@@ -140,7 +140,7 @@ export const getCategoriasConServiciosActivosPorDepartamento = async (
       }
     }
 
-    // 6️⃣ Siempre retornar TODAS las categorías (aunque total_servicios = 0)
+    // Siempre retornar TODAS las categorías (aunque total_servicios = 0)
     const resultado = categorias.map(c => ({
       codigo_categoria: c.CATE_Id,
       categoria: c.CATE_Nombre,
@@ -165,14 +165,14 @@ export const getSubcategoriasConServiciosActivos = async (
     type Servicio = { SERV_Interno: string; SUBC_Id: number };
     type Subcategoria = { SUBC_Id: number; SUBC_Nombre: string; CATE_Id: number };
 
-    // 1️⃣ Direcciones de servicios
+    // Direcciones de servicios
     const direccionesServicios = (await Direcciones.findAll({
       attributes: ["DIUS_CodigoUbigeo", "DIUS_Cod_Entidad"],
       where: { DIUS_Tipo_Entidad: "servicio" },
       raw: true,
     })) as unknown as Direccion[];
 
-    // 2️⃣ Servicios activos
+    // Servicios activos
     const serviciosActivos = (await Servicios.findAll({
       where: { SERV_Estado: true },
       attributes: ["SERV_Interno", "SUBC_Id"],
@@ -181,19 +181,19 @@ export const getSubcategoriasConServiciosActivos = async (
 
     const serviciosActivosSet = new Set(serviciosActivos.map(s => s.SERV_Interno));
 
-    // 3️⃣ Subcategorías
+    // Subcategorías
     const subcategorias = (await Subcategorias.findAll({
       attributes: ["SUBC_Id", "SUBC_Nombre", "CATE_Id"],
       raw: true,
     })) as unknown as Subcategoria[];
 
-    // 4️⃣ Filtrar por ubigeo
+    // Filtrar por ubigeo
     const serviciosEnUbigeo = direccionesServicios
       .filter(d => d.DIUS_CodigoUbigeo.startsWith(codUbigeo))
       .map(d => d.DIUS_Cod_Entidad)
       .filter(id => serviciosActivosSet.has(id));
 
-    // 5️⃣ Contar servicios por subcategoría dentro de la categoría seleccionada
+    // Contar servicios por subcategoría dentro de la categoría seleccionada
     const conteoPorSubcategoria: Record<number, number> = {};
 
     for (const servicioId of serviciosEnUbigeo) {
@@ -209,7 +209,7 @@ export const getSubcategoriasConServiciosActivos = async (
       }
     }
 
-    // 6️⃣ Siempre retornar TODAS las subcategorías de la categoría (aunque total_servicios = 0)
+    // Siempre retornar TODAS las subcategorías de la categoría (aunque total_servicios = 0)
     const resultado = subcategorias
       .filter(sc => sc.CATE_Id === cateId)
       .map(sc => ({

@@ -63,8 +63,8 @@ export const getPlanes = async (): Promise<void> => {
     });
 
     await Planes.bulkCreate(nuevosPlanes);
-    console.log("✅ Planes creados correctamente de forma dinámica.");
+    console.log("Planes creados correctamente de forma dinámica.");
   } catch (error: any) {
-    console.error("❌ Error al crear los planes:", error.message);
+    console.error("Error al crear los planes:", error.message);
   }
 };

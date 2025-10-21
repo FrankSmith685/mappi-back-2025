@@ -5,10 +5,6 @@ import { crearPlanUsuario, getPlanesConProrrateo, getPlanesUsuario, getPlanesUsu
 
 const router = Router();
 
-/**
- * 📘 Crear un nuevo registro en planes_usuarios
- * Ejemplo: POST /planes-usuario/create
- */
 router.post("/create", authenticate, async (req: Request, res: Response) => {
   try {
     const usernameFromToken = req.user?.username;
@@ -20,7 +16,7 @@ router.post("/create", authenticate, async (req: Request, res: Response) => {
       });
     }
 
-    // 🔹 Obtener información del usuario autenticado
+    // Obtener información del usuario autenticado
     const userInfo = await getUserInfo(usernameFromToken);
     if (!userInfo.success || !userInfo.data) {
       return res.status(404).json({
@@ -29,7 +25,7 @@ router.post("/create", authenticate, async (req: Request, res: Response) => {
       });
     }
 
-    // 🔹 Ejecutar la lógica de creación del plan
+    // Ejecutar la lógica de creación del plan
     const result = await crearPlanUsuario({
       ...req.body,
       USUA_Interno: userInfo.data.cod_usuario,
@@ -46,10 +42,6 @@ router.post("/create", authenticate, async (req: Request, res: Response) => {
   }
 });
 
-/**
- * 📗 Obtener planes activos del usuario autenticado
- * Ejemplo: GET /planes-usuario/activos
- */
 router.get("/activos", authenticate, async (req: Request, res: Response) => {
   try {
     const usernameFromToken = req.user?.username;
@@ -61,7 +53,7 @@ router.get("/activos", authenticate, async (req: Request, res: Response) => {
       });
     }
 
-    // 🔹 Obtener información del usuario autenticado
+    // Obtener información del usuario autenticado
     const userInfo = await getUserInfo(usernameFromToken);
     if (!userInfo.success || !userInfo.data) {
       return res.status(404).json({
@@ -70,7 +62,7 @@ router.get("/activos", authenticate, async (req: Request, res: Response) => {
       });
     }
 
-    // 🔹 Obtener los planes activos
+    // Obtener los planes activos
     const result = await getPlanesUsuarioActivos(userInfo.data.cod_usuario);
 
     return res.status(200).json(result);
@@ -124,7 +116,7 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
       });
     }
 
-    // 🔹 Obtener información del usuario autenticado
+    // Obtener información del usuario autenticado
     const userInfo = await getUserInfo(usernameFromToken);
     if (!userInfo.success || !userInfo.data) {
       return res.status(404).json({
@@ -133,7 +125,7 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
       });
     }
 
-    // 🔹 Obtener los planes activos
+    // Obtener los planes activos
     const result = await getPlanesUsuario(userInfo.data.cod_usuario);
 
     return res.status(200).json(result);

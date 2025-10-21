@@ -49,7 +49,7 @@ export const getUserById = async (userId: string): Promise<UsuarioResponse> => {
         include: [
           {
             model: Avisos,
-            as: "Aviso", // 👈 el alias debe coincidir con la relación en tu modelo
+            as: "Aviso", // el alias debe coincidir con la relación en tu modelo
             attributes: ["AVIS_Id"],
             required: false,
           },
@@ -113,7 +113,7 @@ export const getUserById = async (userId: string): Promise<UsuarioResponse> => {
 
   const direccion = userPlain.Direcciones || null;
 
-  // 🔹 Plan activo
+  // Plan activo
   const planActivoData = userPlain.PlanesAsignados?.find(
     (plan: any) => plan.PLUS_EstadoPlan === "activo"
   );
@@ -130,12 +130,12 @@ export const getUserById = async (userId: string): Promise<UsuarioResponse> => {
       }
     : null;
 
-  // 🔹 Calcular tipo de plan y tipo de usuario
+  //  Calcular tipo de plan y tipo de usuario
   const tipoPlan = planActivoData?.Plan?.TipoPlan?.TIPL_Nombre?.toLowerCase() || "";
   const tipoUsuario = planActivoData?.Plan?.PLAN_TipoUsuario?.toLowerCase() || "";
   const esEmpresa = userPlain.Empresas && userPlain.Empresas.length > 0;
 
-  // 🔹 Calcular límites dinámicos
+  // Calcular límites dinámicos
   let limiteServicios = 0;
   let limitePromocional = 0;
   let tieneVideoPromocional = false;
@@ -147,17 +147,17 @@ export const getUserById = async (userId: string): Promise<UsuarioResponse> => {
     limiteServicios = esEmpresa ? 3 : 2;
     limitePromocional = esEmpresa ? 3 : 2;
 
-    // 🎬 Video Promocional para empresa con plan clásico
+    // Video Promocional para empresa con plan clásico
     if (esEmpresa) tieneVideoPromocional = true;
   } else if (tipoPlan.includes("chévere") || tipoPlan.includes("chevere")) {
     limiteServicios = esEmpresa ? 5 : 3;
     limitePromocional = esEmpresa ? 5 : 3;
 
-    // 🎬 Video Promocional para independiente y empresa con plan chévere
+    // Video Promocional para independiente y empresa con plan chévere
     tieneVideoPromocional = true;
   }
 
-  // 🔹 Calcular cantidad de servicios activos
+  // Calcular cantidad de servicios activos
   const serviciosActivos = userPlain.Servicios
     ? userPlain.Servicios.filter(
         (serv: any) => serv.SERV_Estado === true && serv.SERV_Archivado === false
@@ -198,7 +198,7 @@ export const getUserById = async (userId: string): Promise<UsuarioResponse> => {
     planActivo,
     limiteServicios,
     limitePromocional,
-    tieneVideoPromocional, // 🎬 Nuevo campo agregado
+    tieneVideoPromocional, //  Nuevo campo agregado
     tieneAviso,
   };
 };

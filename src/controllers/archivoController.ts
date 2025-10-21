@@ -126,7 +126,6 @@ export const actualizarArchivo = async (
   }
 };
 
-
 // Obtener archivos por entidad
 export const getArchivos = async (
   entidad: string,
@@ -161,7 +160,6 @@ export const getArchivos = async (
     };
   }
 };
-
 
 // Guardar directamente una URL en la BD sin subir a S3
 export const subirArchivoUrl = async (
