@@ -2,11 +2,11 @@
 import { Request, Response } from 'express';
 
 export const createCredentialHandler = (
-  handler: (correo: string, contraseña: string) => Promise<any>
+  handler: (correo: string, proveedor: "correo" | "google" | "facebook" ,contraseña: string) => Promise<any>
 ) => {
   return async (req: Request, res: Response) => {
     try {
-      const { correo, contraseña } = req.body;
+      const { correo,proveedor, contraseña } = req.body;
 
       if (!correo || !contraseña) {
         return res.status(400).json({
@@ -15,7 +15,7 @@ export const createCredentialHandler = (
         });
       }
 
-      const result = await handler(correo, contraseña);
+      const result = await handler(correo,proveedor, contraseña);
       return res.status(200).json(result);
     } catch (error: any) {
       let parsedError;
@@ -44,11 +44,12 @@ export const createRegisterHandler = (
     } catch (error: any) {
       let parsedError;
       try {
+        console.log(error.message);
         parsedError = JSON.parse(error.message);
       } catch {
         parsedError = {
           success: false,
-          message: 'Error inesperado al registrar el usuario.',
+          message: error.message|| 'Error inesperado al registrar el usuario.',
         };
       }
 

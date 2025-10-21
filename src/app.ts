@@ -7,6 +7,7 @@ import cors from 'cors';
 
 import routes from './routes/index'; // Asegúrate que `routes/index.ts` exporte por default
 import './db'; // Solo para inicializar
+import "./jobs/verificarPlanesExpirados";
 
 const server = express();
 server.use(cors());

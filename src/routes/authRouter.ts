@@ -1,12 +1,12 @@
 import { Router, Request, Response } from 'express';
-import { loginUser, refreshAccessToken, registerUser, resetPassword, sendResetPasswordEmail, validateResetToken, verifyEmail } from '../controllers/authController';
+import { loginUser, refreshAccessToken, registerUser, resetPassword, sendResetPasswordEmail, validateResetToken } from '../controllers/authController';
 import { createVerifierHandler } from '../helpers/verifierHandler';
 import { createCredentialHandler, createRegisterHandler } from '../helpers/credentialsHandler';
 
 
 const router = Router();
 
-router.get('/verify-email', createVerifierHandler('email', verifyEmail));
+// router.get('/verify-email', createVerifierHandler('email', verifyEmail));
 
 router.post('/login', createCredentialHandler(loginUser));
 
@@ -39,7 +39,7 @@ router.post('/send-reset-email', async (req: Request, res: Response) => {
     const response = await sendResetPasswordEmail(correo);
     return res.status(200).json(response);
   } catch (error: any) {
-    console.error('Error detallado al enviar el correo:', error); // <--- IMPORTANTE
+    console.error('Error detallado al enviar el correo:', error);
     return res.status(500).json({
       success: false,
       message: 'Error al enviar el correo de recuperación.',

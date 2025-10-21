@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { documentType } from '../controllers/documentController';
+import { documentType } from '../controllers/cursoController';
 
 
 const router = Router();

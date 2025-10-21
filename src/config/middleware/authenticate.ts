@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { TokenPayload } from '../../interfaces/Auth';
+import { TokenPayload } from '../../interfaces/IAuth';
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -30,7 +30,7 @@ export const generateToken = (
   }
 
   const payload: TokenPayload = { username, data };
-  const accessToken = jwt.sign(payload, ACCESS_SECRET_KEY, { expiresIn: '1h' });
+  const accessToken = jwt.sign(payload, ACCESS_SECRET_KEY, { expiresIn: '7d' });
   const refreshToken = jwt.sign({ username }, REFRESH_SECRET_KEY, { expiresIn: '2h' });
   activeTokens[username] = accessToken;
 

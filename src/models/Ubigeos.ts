@@ -1,31 +1,33 @@
 import { Sequelize, DataTypes, Model } from 'sequelize';
-import { UbigeoAttributes, UbigeoCreationAttributes } from '../interfaces/Ubigeos';
+import { UbigeoAttributes, UbigeoCreationAttributes } from '../interfaces/IUbigeos';
 
 export default (sequelize: Sequelize) => {
-  sequelize.define<Model<UbigeoAttributes, UbigeoCreationAttributes>>('Ubigeos', {
-    cod_ubigeo: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
-      allowNull: false,
+  sequelize.define<Model<UbigeoAttributes, UbigeoCreationAttributes>>(
+    'Ubigeos',
+    {
+      UBIG_Codigo: {
+        type: DataTypes.STRING(6),
+        allowNull: false,
+        primaryKey: true,
+        unique: true,
+      },
+      UBIG_Departamento: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+      },
+      UBIG_Provincia: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+      },
+      UBIG_Distrito: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+      },
     },
-    departamento: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    provincia: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    distrito: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    nombre: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-  }, {
-    timestamps: false,
-  });
+    {
+      modelName: 'Ubigeos',
+      tableName: 'ubigeos',
+      timestamps: false,
+    }
+  );
 };

@@ -4,8 +4,8 @@ dotenv.config();
 
 export const sendEmail = async (to: string, subject: string, html: string) => {
   const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST, // ej: 'smtp.gmail.com'
-    port: Number(process.env.EMAIL_PORT), // ej: 465
+    host: process.env.EMAIL_HOST,
+    port: Number(process.env.EMAIL_PORT),
     secure: true,
     auth: {
       user: process.env.EMAIL_USER,
@@ -14,7 +14,7 @@ export const sendEmail = async (to: string, subject: string, html: string) => {
   });
 
   await transporter.sendMail({
-    from: `"starmobiliario" <${process.env.EMAIL_USER}>`,
+    from: `"mappi" <${process.env.EMAIL_USER}>`,
     to,
     subject,
     html,

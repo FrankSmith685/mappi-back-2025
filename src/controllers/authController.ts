@@ -1,213 +1,223 @@
 import bcrypt from 'bcrypt';
-import { generateToken } from '../config/middleware/authenticate';
 import { sequelize } from '../db';
-import { UsuarioAttributes, UsuarioCreationAttributes } from '../interfaces/Usuario';
 import { Model } from 'sequelize';
+import { UsuarioAttributes, UsuarioCreationAttributes } from '../interfaces/IUsuario';
 import { createAuthResponse } from '../helpers/authHelpers';
-import { TipoUsuarioAttributes, TipoUsuarioCreationAttributes } from '../interfaces/TipoUsuario';
-import { TipoDocumentoAttributes, TipoDocumentoCreationAttributes } from '../interfaces/TipoDocumentos';
-import { UbigeoAttributes, UbigeoCreationAttributes } from '../interfaces/Ubigeos';
-import { MediosAttributes, MediosCreationAttributes } from '../interfaces/Medios';
-import { RegisterUserData } from '../interfaces/Auth';
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
 import { sendEmail } from '../config/nodemailer/emailSender';
 import { DateTime } from "luxon";
-dotenv.config();
-
-
+import { RegisterUserData } from '../interfaces/IAuth';
+import { generateToken } from '../config/middleware/authenticate';
+import { UsuarioLoginAttributes, UsuarioLoginCreationAttributes } from '../interfaces/IUsuarioLogin';
+import { UbigeoAttributes, UbigeoCreationAttributes } from '../interfaces/IUbigeos';
 const {
   Usuarios,
-  TipoUsuarios,
-  TipoDocumentos,
-  UsuaDocumentos,
+  Roles,
   Ubigeos,
-  Medios,
-  TipoNotificaciones,
-  UsuaTipNotificaciones
+  Usuarios_Roles,
+  Direcciones,
+  Usuarios_Login,
+  Usuario_TipoNotificaciones ,
+  TipoNotificaciones
 } = sequelize.models;
 
-// Verifica si el correo existe en la base de datos
-export const verifyEmail = async (
-    email: string
-): Promise<{ success: boolean; message: string }> => {
-    try {
-        const usuario = await Usuarios.findOne({ where: { correo: email } });
-
-        if (!usuario) {
-        throw new Error('Usuario no encontrado');
-        }
-
-        return { success: true, message: 'Usuario encontrado' };
-    } catch (error: any) {
-        throw new Error(JSON.stringify({ success: false, message: error.message }));
-    }
-};
-// Login del usuario
 export const loginUser = async (
   correo: string,
-  contraseña: string
+  proveedor: 'correo' | 'google' | 'facebook',
+  contraseña?: string
 ): Promise<{ success: boolean; accessToken: string; refreshToken: string; message: string }> => {
   try {
-    const existUser = await Usuarios.findOne({ where: { correo } }) as Model<UsuarioAttributes, UsuarioCreationAttributes>;
+    // Buscar login directamente por correo del proveedor
+    const loginData = await Usuarios_Login.findOne({
+      where: { USL_Email_Proveedor: correo, USL_Proveedor: proveedor }
+    }) as Model<UsuarioLoginAttributes, UsuarioLoginCreationAttributes> & UsuarioLoginAttributes;
 
-    if (!existUser) {
-      throw new Error('Usuario no encontrado');
+    if (!loginData) {
+      throw new Error(`No existe cuenta vinculada con ${proveedor} usando ${correo}`);
     }
 
-    const correoUsuario = existUser.getDataValue('correo');
-    const contraseñaUsuario = existUser.getDataValue('contraseña');
+    // Buscar el usuario dueño de ese login
+    const usuario = await Usuarios.findByPk(loginData.USUA_Interno) as Model<UsuarioAttributes, UsuarioCreationAttributes> & UsuarioAttributes;
+    if (!usuario) throw new Error("Usuario no encontrado");
 
-    const match = await bcrypt.compare(contraseña, contraseñaUsuario || '');
-
-    if (!match) {
-      throw new Error('La contraseña del usuario es incorrecta');
+    // Validar credenciales solo si es proveedor correo
+    if (proveedor === 'correo') {
+      const match = await bcrypt.compare(contraseña || '', loginData.USL_Clave || '');
+      if (!match) throw new Error('Contraseña incorrecta');
     }
+
+    // Actualizar última sesión
     const limaNow = DateTime.now().setZone('America/Lima').toJSDate();
-    console.log("DATE",limaNow);
-    await existUser.update({ ultimo_inicio_sesion: limaNow });
-    return createAuthResponse(correoUsuario);
+    await usuario.update({ USUA_UltimaSesion: limaNow });
+
+    return createAuthResponse(usuario.USUA_Correo);
+
   } catch (error: any) {
     console.error(error);
     throw new Error(JSON.stringify({ success: false, message: error.message }));
   }
 };
+
 //Registro de un nuevo usuario
 export const registerUser = async (data: RegisterUserData) => {
-  try {
-     const {
-        tipoUsuario,
-        correo,
-        contraseña,
-        nombre,
-        apellido,
-        razon_social,
-        tipoDocumento,
-        nroDocumento,
-        telefono,
-        telefono_movil,
-    } = data;
-    const existeUsuario = await Usuarios.findOne({ where: { correo } }) as Model<UsuarioAttributes, UsuarioCreationAttributes>;
-    if (existeUsuario) throw new Error('El usuario ya existe');
+  const {
+    nombre,
+    apellido,
+    correo,
+    telefono,
+    dni,
+    contrasena,
+    fotoPerfil,
+    proveedor
+  } = data;
 
-    const ultimoUsuario = await Usuarios.findOne({
-      order: [['cod_usuario', 'DESC']],
-      attributes: ['cod_usuario']
-    }) as Model<UsuarioAttributes, UsuarioCreationAttributes>;
+  // Valores por defecto
+  const rolId = 2;
+  const ubigeoCodigo = "150101";
+  const direccion = "Sin dirección";
+  const tipoDireccion = "Residencia";
 
-    let nuevoCodigoUsuario: string;
+  // Detectar proveedor
+  let proveedorFinal = proveedor || 'correo';
 
-    if (ultimoUsuario) {
-    const nuevoCodUsuario = ultimoUsuario.getDataValue('cod_usuario');
-    const numero = parseInt(nuevoCodUsuario.slice(3)) + 1;
-    nuevoCodigoUsuario = `COD${numero.toString().padStart(4, '0')}`;
-    } else {
-    nuevoCodigoUsuario = 'COD0001';
+  if (proveedorFinal === 'correo') {
+    if (!nombre || !apellido || !contrasena) {
+      throw new Error("Faltan datos obligatorios para registro con correo");
     }
+  } else if (['google', 'facebook'].includes(proveedorFinal)) {
+    if (!correo) {
+      throw new Error("El correo es obligatorio para registro con proveedor externo");
+    }
+  } else {
+    throw new Error("Proveedor inválido");
+  }
 
-    const tipo_usuario = await TipoUsuarios.findByPk(tipoUsuario) as Model<TipoUsuarioAttributes, TipoUsuarioCreationAttributes>;
-    if (!tipo_usuario) throw new Error('Tipo de usuario no encontrado');
-    const cod_tipo_usuario = tipo_usuario.getDataValue('cod_tipo_usuario');
-    
+  // Validar si ya existe usuario
+  const existeUsuario = await Usuarios.findOne({ where: { USUA_Correo: correo } });
+  if (existeUsuario) throw new Error("El usuario ya existe");
 
-    const tipo_documento = await TipoDocumentos.findByPk(tipoDocumento) as Model<TipoDocumentoAttributes, TipoDocumentoCreationAttributes>;
-    if (!tipo_documento) throw new Error('Tipo de documento no encontrado');
-    const cod_tipo_documento = tipo_documento.getDataValue('cod_tipo_documento');
+  // Generar nuevo código interno
+  const ultimoUsuario = await Usuarios.findOne({
+    order: [['USUA_Interno', 'DESC']],
+    attributes: ['USUA_Interno']
+  }) as Model<UsuarioAttributes, UsuarioCreationAttributes>;
 
-    const ubigeo = await Ubigeos.findByPk(1386) as Model<UbigeoAttributes, UbigeoCreationAttributes>;
-    if (!ubigeo) throw new Error('Ubigeo no encontrado');
-    const cod_ubigeo = ubigeo.getDataValue('cod_ubigeo');
+  let nuevoCodigoUsuario: string;
+  if (ultimoUsuario) {
+    const nuevoCodUsuario = ultimoUsuario.getDataValue('USUA_Interno');
+    const numero = parseInt(nuevoCodUsuario.slice(3)) + 1;
+    nuevoCodigoUsuario = `USU${numero.toString().padStart(4, '0')}`;
+  } else {
+    nuevoCodigoUsuario = 'USU0001';
+  }
 
-    const tipo_registro =
-      nombre && nroDocumento && telefono_movil && (apellido || razon_social)
-        ? 'Completo'
-        : 'Parcial';
+  // Validar rol y ubigeo
+  const rol = await Roles.findByPk(rolId);
+  if (!rol) throw new Error("El rol por defecto no existe");
 
-    const hashContraseña = await bcrypt.hash(contraseña, 10);
-    
+  const ubigeo = await Ubigeos.findOne({ where: { UBIG_Codigo: ubigeoCodigo } }) as Model<UbigeoAttributes, UbigeoCreationAttributes>;
+  if (!ubigeo) throw new Error('Ubigeo no encontrado');
+  const cod_ubigeo = ubigeo.getDataValue('UBIG_Codigo');
 
-    const nuevoUsuario = await Usuarios.create({
-      cod_usuario: nuevoCodigoUsuario,
-      cod_tipo_usuario: cod_tipo_usuario,
-      correo,
-      contraseña: hashContraseña,
-      nombre,
-      apellido,
-      razon_social,
-      telefono,
-      telefono_movil,
-      cod_ubigeo: cod_ubigeo,
-      tipo_registro,
-      estado: 'Activo',
-      fecha_registro: new Date(),
-    }) as Model<UsuarioAttributes, UsuarioCreationAttributes>;
+  // Crear usuario
+  const nuevoUsuario = (await Usuarios.create({
+    USUA_Interno: nuevoCodigoUsuario,
+    USUA_Nombre: nombre || null,
+    USUA_Apellido: apellido || null,
+    USUA_Correo: correo,
+    USUA_Telefono: telefono || null,
+    USUA_Dni: dni || null,
+    USUA_FotoPerfil: fotoPerfil || null,
+    USUA_Estado: true,
+    USUA_FechaRegistro: new Date(),
+    USUA_UltimaSesion: new Date(),
+  })) as Model<UsuarioAttributes, UsuarioCreationAttributes> & UsuarioAttributes;
 
-    const cod_nuevoUsuario = nuevoUsuario.getDataValue('cod_usuario');
+  // Guardar relación en usuarios_roles
+  await Usuarios_Roles.create({
+    USUA_Interno: nuevoUsuario.USUA_Interno,
+    USRO_Rol: rolId
+  });
 
-    await UsuaDocumentos.create({
-      cod_usuario: cod_nuevoUsuario,
-      cod_tipo_documento: cod_tipo_documento,
-      nro_documento: nroDocumento
-    });
+  // Guardar dirección
+  await Direcciones.create({
+    DIUS_CodigoUbigeo: cod_ubigeo,
+    DIUS_Direccion: direccion,
+    DIUS_Referencia: null,
+    DIUS_Tipo: tipoDireccion,
+    DIUS_Predeterminada: true,
+    DIUS_Tipo_Entidad: 'usuario',
+    DIUS_Cod_Entidad: nuevoUsuario.USUA_Interno
+  });
 
-    const medioEmail = await Medios.findOne({ where: { nombre: 'email' } }) as Model<MediosAttributes, MediosCreationAttributes>;
-    if (!medioEmail) throw new Error("Medio 'email' no encontrado");
-    const cod_medios = medioEmail.getDataValue('cod_medios');
+  // Guardar login
+  let claveLogin = null;
+  if (proveedorFinal === 'correo') {
+    claveLogin = await bcrypt.hash(contrasena, 10);
+  } else {
+    claveLogin = contrasena || null;
+  }
 
-    const tiposNotificaciones = await TipoNotificaciones.findAll();
+  await Usuarios_Login.create({
+    USUA_Interno: nuevoUsuario.USUA_Interno,
+    USL_Proveedor: proveedorFinal,
+    USL_Email_Proveedor: correo,
+    USL_Clave: claveLogin,
+    USL_FechaVinculacion: new Date()
+  });
 
-    const preferenciasUsuario = tiposNotificaciones.map((tipo: any) => ({
-      cod_usuario: cod_nuevoUsuario,
-      cod_tipo_notificaciones: tipo.cod_tipo_notificaciones,
-      activo: true,
+  const tiposNotifs = await TipoNotificaciones.findAll();
+  if (tiposNotifs.length > 0) {
+    const registros = tiposNotifs.map((tipo: any) => ({
+      USUA_Interno: nuevoUsuario.USUA_Interno,
+      TINO_Id: tipo.getDataValue("TINO_Codigo"), // 👈 aquí corregido
+      UTNO_Activo: false
     }));
 
-    await UsuaTipNotificaciones.bulkCreate(preferenciasUsuario);
 
-    const {accessToken, refreshToken} = generateToken(correo, { correo });
-
-    return { success: true, accessToken, refreshToken, message: 'Registro exitoso' };
-  } catch (error: any) {
-    console.error(error);
-    throw new Error(JSON.stringify({ success: false, message: error.message }));
+    await Usuario_TipoNotificaciones .bulkCreate(registros);
   }
+
+  // Generar tokens
+  const { accessToken, refreshToken } = generateToken(correo, { correo });
+  return { success: true, accessToken, refreshToken, message: 'Registro exitoso' };
 };
-// Refresh token para obtener un nuevo access token
+
+//Refresh token para obtener un nuevo access token
 const REFRESH_SECRET_KEY = process.env.REFRESH_SECRET_KEY as string;
 const ACCESS_SECRET_KEY = process.env.ACCESS_SECRET_KEY as string;
 export const refreshAccessToken = async (refreshToken: string): Promise<{ success: boolean; accessToken?: string; message: string }> => {
-  if (!refreshToken) {
-    return {
-      success: false,
-      message: 'No se proporcionó el refresh token',
-    };
-  }
+    if (!refreshToken) {
+        return {
+        success: false,
+        message: 'No se proporcionó el refresh token',
+        };
+    }
+    try {
+        const decoded = jwt.verify(refreshToken, REFRESH_SECRET_KEY) as { username: string };
 
-  try {
-    const decoded = jwt.verify(refreshToken, REFRESH_SECRET_KEY) as { username: string };
+        const newAccessToken = jwt.sign(
+        { username: decoded.username },
+        ACCESS_SECRET_KEY,
+        { expiresIn: '1h' }
+        );
 
-    const newAccessToken = jwt.sign(
-      { username: decoded.username },
-      ACCESS_SECRET_KEY,
-      { expiresIn: '1h' }
-    );
-
-    return {
-      success: true,
-      accessToken: newAccessToken,
-      message: 'Nuevo token generado exitosamente',
-    };
-  } catch (err) { 
-    return {
-      success: false,
-      message: 'Refresh token inválido o expirado',
-    };
-  }
+        return {
+        success: true,
+        accessToken: newAccessToken,
+        message: 'Nuevo token generado exitosamente',
+        };
+    } catch (err) { 
+        return {
+        success: false,
+        message: 'Refresh token inválido o expirado',
+        };
+    }
 };
-// Enviar correo de recuperación de contraseña
+//Enviar correo de recuperación de contraseña
 const RESET_SECRET = process.env.RESET_SECRET_KEY as string;
 export const sendResetPasswordEmail = async (correo: string) => {
-  const usuario = await Usuarios.findOne({ where: { correo } });
+  const usuario = await Usuarios.findOne({ where: { USUA_Correo: correo } });
 
   if (!usuario) {
     throw new Error('Correo no registrado');
@@ -216,7 +226,7 @@ export const sendResetPasswordEmail = async (correo: string) => {
   const token = jwt.sign({ correo }, RESET_SECRET, { expiresIn: '15m' });
   const resetUrl = `http://localhost:5173/?resetToken=${token}`;
 
-  const logoUrl = 'https://www.starmobiliario.com/logo_black.png';
+  const logoUrl = 'https://mappidevbucket.s3.amazonaws.com/mapp_228';
 
   const htmlContent = `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 30px;">
@@ -232,7 +242,7 @@ export const sendResetPasswordEmail = async (correo: string) => {
         </p>
 
         <div style="text-align: center; margin: 40px 0;">
-          <a href="${resetUrl}" style="background-color: #4CAF50; color: #ffffff; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px;">
+          <a href="${resetUrl}" style="background-color: #FF6C4F; color: #ffffff; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 16px;">
             Restablecer Contraseña
           </a>
         </div>
@@ -244,7 +254,7 @@ export const sendResetPasswordEmail = async (correo: string) => {
         <hr style="border: none; border-top: 1px solid #eee; margin: 40px 0;" />
 
         <p style="font-size: 12px; color: #aaa; text-align: center;">
-          © ${new Date().getFullYear()} Starmobiliario. Todos los derechos reservados.
+          © 2025 Mappi. Todos los derechos reservados.
         </p>
       </div>
     </div>
@@ -270,18 +280,42 @@ export const validateResetToken = async (token: string) => {
     };
   }
 };
-// Restablecer la contraseña
+
 export const resetPassword = async (token: string, nuevaContraseña: string) => {
   try {
     const decoded = jwt.verify(token, RESET_SECRET) as { correo: string };
 
-    const usuario = await Usuarios.findOne({ where: { correo: decoded.correo } }) as Model<UsuarioAttributes, UsuarioCreationAttributes>;
+    // 1️⃣ Buscar usuario por correo
+    const usuario = await Usuarios.findOne({
+      where: { USUA_Correo: decoded.correo },
+    }) as Model<UsuarioAttributes, UsuarioCreationAttributes> & UsuarioAttributes;
+
     if (!usuario) {
       throw new Error("Usuario no encontrado");
     }
 
+    // 2️⃣ Buscar login tipo correo
+    let loginCorreo = await Usuarios_Login.findOne({
+      where: {
+        USUA_Interno: usuario.USUA_Interno,
+        USL_Proveedor: "correo",
+      },
+    }) as Model<UsuarioLoginAttributes, UsuarioLoginCreationAttributes> & UsuarioLoginAttributes;
+
+    // 3️⃣ Generar hash de la nueva contraseña
     const contraseñaHash = await bcrypt.hash(nuevaContraseña, 10);
-    await usuario.update({ contraseña: contraseñaHash });
+
+    if (!loginCorreo) {
+      // 🚀 Crear el registro si no existe
+      loginCorreo = await Usuarios_Login.create({
+        USUA_Interno: usuario.USUA_Interno,
+        USL_Proveedor: "correo",
+        USL_Clave: contraseñaHash,
+      }) as Model<UsuarioLoginAttributes, UsuarioLoginCreationAttributes> & UsuarioLoginAttributes;
+    } else {
+      // 🚀 Actualizar contraseña si ya existe
+      await loginCorreo.update({ USL_Clave: contraseñaHash });
+    }
 
     return {
       success: true,
@@ -294,4 +328,3 @@ export const resetPassword = async (token: string, nuevaContraseña: string) => 
     };
   }
 };
-

@@ -3,77 +3,317 @@ import { Sequelize } from 'sequelize';
 export const defineRelations = (sequelize: Sequelize) => {
   const {
     Usuarios,
-    TipoUsuarios,
-    TipoDocumentos, 
-    UsuaDocumentos,
+    Roles,
+    Usuarios_Roles,
+    Usuarios_Login,
     Ubigeos,
-    Multimedias,
-    Notificaciones,
+    Direcciones,
+    Archivos,
+    Usuario_TipoNotificaciones,
     TipoNotificaciones,
-    Medios,
-    UsuaTipNotificaciones,
-    UsuaNotificaciones
+    Empresas,
+    Servicios,
+    Categorias,
+    Subcategorias,
+    Avisos,
+    TipoPlanes,
+    Planes,
+    PlanesBeneficios,
+    PlanesUsuarios,
+    Cursos,
+    ModulosCurso,
+    Usuarios_Modulos,
+    Usuarios_Cursos
   } = sequelize.models;
+    //Relaciones - Usuarios - Roles
+    Usuarios.belongsToMany(Roles, {
+    through: Usuarios_Roles,
+    foreignKey: 'USUA_Interno',
+    otherKey: 'USRO_Rol',
+    as: 'Roles',
+    });
 
-  // === RELACIONES DE USUARIOS ===
-  Usuarios.belongsTo(TipoUsuarios, { foreignKey: 'cod_tipo_usuario',as: 'TipoUsuarios'});
+    Roles.belongsToMany(Usuarios, {
+    through: Usuarios_Roles,
+    foreignKey: 'USRO_Rol', 
+    otherKey: 'USUA_Interno',
+    as: 'Usuarios',
+    });
 
-  Usuarios.belongsToMany(TipoDocumentos, { through: UsuaDocumentos, foreignKey: 'cod_usuario' });
-  TipoDocumentos.belongsToMany(Usuarios, { through: UsuaDocumentos, foreignKey: 'cod_tipo_documento' });
-  UsuaDocumentos.belongsTo(Usuarios, { foreignKey: 'cod_usuario' });
-  UsuaDocumentos.belongsTo(TipoDocumentos, { foreignKey: 'cod_tipo_documento' });
+    // Relaciones Ubigeo - Direcciones
+    Ubigeos.hasMany(Direcciones, {
+      foreignKey: 'DIUS_CodigoUbigeo',
+      as: "Direcciones",
+    });
 
-  Usuarios.belongsTo(Ubigeos, { foreignKey: 'cod_ubigeo' });
+    Direcciones.belongsTo(Ubigeos, {
+      foreignKey: 'DIUS_CodigoUbigeo',
+      as: "Ubigeo",
+    });
 
-  Usuarios.hasMany(Multimedias, { foreignKey: 'cod_usuario' });
-  Multimedias.belongsTo(Usuarios, { foreignKey: 'cod_usuario' });
+    // Relaciones Usuarios - Direcciones
+    Usuarios.hasOne(Direcciones, {
+      foreignKey: 'DIUS_Cod_Entidad',
+      constraints: false,
+      scope: {
+        DIUS_Tipo_Entidad: 'usuario'
+      },
+      as: "Direcciones",
+    });
 
-  TipoNotificaciones.hasMany(Notificaciones, { foreignKey: 'cod_tipo_notificacion' });
-  Notificaciones.belongsTo(TipoNotificaciones, { foreignKey: 'cod_tipo_notificacion' });
+    Direcciones.belongsTo(Usuarios, {
+      foreignKey: 'DIUS_Cod_Entidad',
+      constraints: false,
+      scope: {
+        DIUS_Tipo_Entidad: 'usuario'
+      },
+      as: "Usuario",
+    });
 
-  Medios.hasMany(Notificaciones, { foreignKey: 'cod_medios' });
-  Notificaciones.belongsTo(Medios, { foreignKey: 'cod_medios' });
+    // Relaciones Usuarios - Archivos
+    Usuarios.hasMany(Archivos, {
+      foreignKey: 'ARCH_EntidadId',
+      constraints: false,
+      scope: {
+        ARCH_Entidad: 'usuario',
+      },
+      as: 'Archivos', // alias para incluir archivos del usuario
+    });
 
-  Usuarios.belongsToMany(TipoNotificaciones, {
-    through: UsuaTipNotificaciones,
-    foreignKey: 'cod_usuario',
-    otherKey: 'cod_tipo_notificaciones',
-  });
+    Archivos.belongsTo(Usuarios, {
+      foreignKey: 'ARCH_EntidadId',
+      constraints: false,
+      scope: {
+        ARCH_Entidad: 'usuario',
+      },
+      as: 'Usuario',
+    });
 
-  TipoNotificaciones.belongsToMany(Usuarios, {
-    through: UsuaTipNotificaciones,
-    foreignKey: 'cod_tipo_notificaciones',
-    otherKey: 'cod_usuario',
-  });
-  
+    Usuarios.hasMany(Usuarios_Login, { foreignKey: 'USUA_Interno' });
+    Usuarios_Login.belongsTo(Usuarios, { foreignKey: 'USUA_Interno' });
 
-  UsuaTipNotificaciones.belongsTo(Usuarios, {
-    foreignKey: 'cod_usuario'
-  });
+    Usuarios.belongsToMany(TipoNotificaciones, {
+      through: Usuario_TipoNotificaciones,
+      foreignKey: 'USUA_Interno',
+      otherKey: 'TINO_Id',
+      as: 'TiposNotificacion',
+    });
 
-  UsuaTipNotificaciones.belongsTo(TipoNotificaciones, {
-    foreignKey: 'cod_tipo_notificaciones'
-  });
+    TipoNotificaciones.belongsToMany(Usuarios, {
+      through: Usuario_TipoNotificaciones,
+      foreignKey: 'TINO_Id',
+      otherKey: 'USUA_Interno',
+      as: 'Usuarios',
+    });
 
-  Usuarios.belongsToMany(Notificaciones, {
-    through: UsuaNotificaciones,
-    foreignKey: 'cod_usuario',
-    otherKey: 'cod_notificacion',
-  });
+    Usuario_TipoNotificaciones.belongsTo(TipoNotificaciones, {
+      foreignKey: "TINO_Id",
+      as: "TipoNotificacion", // 👈 este alias es el que usas en el include
+    });
 
-  Notificaciones.belongsToMany(Usuarios, {
-    through: UsuaNotificaciones,
-    foreignKey: 'cod_notificacion',
-    otherKey: 'cod_usuario',
-  });
+    TipoNotificaciones.hasMany(Usuario_TipoNotificaciones, {
+      foreignKey: "TINO_Id",
+      as: "UsuarioTipoNotificaciones",
+    });
 
-  UsuaNotificaciones.belongsTo(Usuarios, {
-    foreignKey: 'cod_usuario'
-  });
+    //Relaciones Empresas - Usuarios
+    Usuarios.hasMany(Empresas, {
+      foreignKey: "USUA_Interno",
+      as: "Empresas",
+    });
 
-  UsuaNotificaciones.belongsTo(Notificaciones, {
-    foreignKey: 'cod_notificacion'
-  });
+    Empresas.belongsTo(Usuarios, {
+      foreignKey: "USUA_Interno",
+      as: "Usuario",
+    });
+    //Relaciones Empresas - Direcciones
+    Empresas.hasOne(Direcciones, {
+      foreignKey: "DIUS_Cod_Entidad",
+      constraints: false,
+      scope: {
+        DIUS_Tipo_Entidad: "empresa", // diferencia de usuario
+      },
+      as: "Direccion",
+    });
 
-  // === RELACIONES DE INMUEBLES ===
-};
+    Direcciones.belongsTo(Empresas, {
+      foreignKey: "DIUS_Cod_Entidad",
+      constraints: false,
+      scope: {
+        DIUS_Tipo_Entidad: "empresa",
+      },
+      as: "Empresa",
+    });
+
+    //Relaciones Empresas - Archivos
+    Empresas.hasMany(Archivos, {
+      foreignKey: "ARCH_EntidadId",
+      constraints: false,
+      scope: {
+        ARCH_Entidad: "empresa", // diferencia de usuario
+      },
+      as: "Archivos",
+    });
+
+    Archivos.belongsTo(Empresas, {
+      foreignKey: "ARCH_EntidadId",
+      constraints: false,
+      scope: {
+        ARCH_Entidad: "empresa",
+      },
+      as: "Empresa",
+    });
+
+    // RELACIONES PARA SERVICIOS
+
+    // Servicios - Subcategorias
+    Subcategorias.hasMany(Servicios, { foreignKey: "SUBC_Id", as: "Servicios" });
+    Servicios.belongsTo(Subcategorias, { foreignKey: "SUBC_Id", as: "Subcategoria" });
+
+    // Subcategorias - Categorias
+    Categorias.hasMany(Subcategorias, { foreignKey: "CATE_Id", as: "Subcategorias" });
+    Subcategorias.belongsTo(Categorias, { foreignKey: "CATE_Id", as: "Categoria" });
+
+    // Servicios - Usuarios
+    Usuarios.hasMany(Servicios, { foreignKey: "USUA_Interno", as: "Servicios" });
+    Servicios.belongsTo(Usuarios, { foreignKey: "USUA_Interno", as: "Usuario" });
+
+    // Servicios - Direcciones
+    Servicios.hasOne(Direcciones, {
+      foreignKey: "DIUS_Cod_Entidad",
+      constraints: false,
+      scope: { DIUS_Tipo_Entidad: "servicio" },
+      as: "Direccion",
+    });
+
+    Direcciones.belongsTo(Servicios, {
+      foreignKey: "DIUS_Cod_Entidad",
+      constraints: false,
+      scope: { DIUS_Tipo_Entidad: "servicio" },
+      as: "Servicio",
+    });
+
+    // Servicios - Archivos
+    Servicios.hasMany(Archivos, {
+      foreignKey: "ARCH_EntidadId",
+      constraints: false,
+      scope: { ARCH_Entidad: "servicio" },
+      as: "Archivos",
+    });
+
+    Archivos.belongsTo(Servicios, {
+      foreignKey: "ARCH_EntidadId",
+      constraints: false,
+      scope: { ARCH_Entidad: "servicio" },
+      as: "Servicio",
+    });
+
+    // Avisos - Servicios
+    Servicios.hasOne(Avisos, {
+      foreignKey: "SERV_Interno",
+      as: "Aviso",
+    });
+
+    Avisos.belongsTo(Servicios, {
+      foreignKey: "SERV_Interno",
+      as: "Servicio",
+    });
+
+    Usuarios.hasMany(Avisos, { foreignKey: "USUA_Interno", as: "Avisos" });
+    Avisos.belongsTo(Usuarios, { foreignKey: "USUA_Interno", as: "Usuarios" });
+
+
+    // Aviso puede pertenecer a una Empresa
+    Avisos.belongsTo(Empresas, { foreignKey: "EMPR_Interno", as: "Empresa" });
+    Empresas.hasMany(Avisos, { foreignKey: "EMPR_Interno", as: "Avisos" });
+
+    // Planes
+    TipoPlanes.hasMany(Planes, {
+      foreignKey: "TIPL_Id",
+      as: "Planes",
+    });
+
+    Planes.belongsTo(TipoPlanes, {
+      foreignKey: "TIPL_Id",
+      as: "TipoPlan",
+    });
+
+    Planes.hasMany(PlanesBeneficios, {
+      foreignKey: "PLAN_Id",
+      as: "Beneficios",
+    });
+
+    PlanesBeneficios.belongsTo(Planes, {
+      foreignKey: "PLAN_Id",
+      as: "Plan",
+    });
+
+    // TipoPlanes → PlanesUsuarios
+    TipoPlanes.hasMany(PlanesUsuarios, {
+      foreignKey: "TIPL_Id",
+      as: "PlanesUsuarios",
+    });
+
+    PlanesUsuarios.belongsTo(TipoPlanes, {
+      foreignKey: "TIPL_Id",
+      as: "TipoPlan",
+    });
+
+    // Planes → PlanesUsuarios
+    Planes.hasMany(PlanesUsuarios, {
+      foreignKey: "PLAN_Id",
+      as: "UsuariosAsociados",
+    });
+
+    PlanesUsuarios.belongsTo(Planes, {
+      foreignKey: "PLAN_Id",
+      as: "Plan",
+    });
+
+    // Usuarios → PlanesUsuarios
+    Usuarios.hasMany(PlanesUsuarios, {
+      foreignKey: "USUA_Interno",
+      as: "PlanesAsignados",
+    });
+
+    PlanesUsuarios.belongsTo(Usuarios, {
+      foreignKey: "USUA_Interno",
+      as: "Usuario",
+    });
+
+    // Curso > Modulo
+     Cursos.hasMany(ModulosCurso, {
+      foreignKey: "CURS_Id"
+    });
+
+    ModulosCurso.belongsTo(Cursos, {
+      foreignKey: "CURS_Id"
+    });
+
+    Usuarios.belongsToMany(ModulosCurso, {
+      through: Usuarios_Modulos,
+      foreignKey: "USUA_Interno",
+    });
+    ModulosCurso.belongsToMany(Usuarios, {
+      through: Usuarios_Modulos,
+      foreignKey: "MODU_Id",
+    });
+
+    Usuarios.hasMany(Usuarios_Cursos, {
+      foreignKey: "USUA_Interno",
+    });
+
+    Usuarios_Cursos.belongsTo(Usuarios, {
+      foreignKey: "USUA_Interno",
+    });
+
+    Cursos.hasMany(Usuarios_Cursos, {
+      foreignKey: "CURS_Id",
+    });
+
+    Usuarios_Cursos.belongsTo(Cursos, {
+      foreignKey: "CURS_Id",
+    });
+
+  };
+
