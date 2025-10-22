@@ -8,12 +8,12 @@ export const calcularProrrateo = (
   const diferenciaHoras =
     (fechaActual.getTime() - fechaInicio.getTime()) / (1000 * 60 * 60);
 
-  // 🔹 Caso 1: comprado hace menos de 24h → descuento total
+  //  Caso 1: comprado hace menos de 24h → descuento total
   if (diferenciaHoras < 24) {
     return { saldoRestante: precioAnterior, diasRestantes: 30 };
   }
 
-  // 🔹 Caso 2: proporcional según días restantes
+  //  Caso 2: proporcional según días restantes
   const diasTotales = Math.ceil(
     (fechaExpiracion.getTime() - fechaInicio.getTime()) / (1000 * 60 * 60 * 24)
   );

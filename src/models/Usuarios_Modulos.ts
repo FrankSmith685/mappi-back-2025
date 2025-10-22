@@ -43,7 +43,7 @@ export default (sequelize: Sequelize) => {
         defaultValue: false,
       },
 
-      // ✅ Porcentaje completado (0 a 100)
+      //  Porcentaje completado (0 a 100)
       USUM_PorcentajeProgreso: {
         type: DataTypes.DECIMAL(5, 2),
         allowNull: false,
@@ -66,7 +66,7 @@ export default (sequelize: Sequelize) => {
         defaultValue: false,
       },
 
-      // 🕒 Fecha de última actualización
+      //  Fecha de última actualización
       USUM_FechaUltimoProgreso: {
         type: DataTypes.DATE,
         allowNull: false,

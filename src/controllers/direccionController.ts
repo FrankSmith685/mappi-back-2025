@@ -234,7 +234,7 @@ export const updateDireccion = async (req: Request, res: Response) => {
       data: nuevaDireccion,
     });
   } catch (error: any) {
-    console.error("❌ Error guardando o actualizando dirección:", error);
+    console.error(" Error guardando o actualizando dirección:", error);
     await transaction.rollback();
     return res.status(500).json({
       success: false,

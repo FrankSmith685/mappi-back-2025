@@ -6,6 +6,8 @@ import {
     getServicioById,
     getServicios,
     getServiciosActivos,
+    getServiciosActivosConPlanChevere,
+    getServiciosActivosPremium,
     getServiciosByUsuario,
 //   getAllServicios,
 //   getServiciosPorUsuario,
@@ -17,6 +19,9 @@ import {
 import { getUserInfo } from "../controllers/userController";
 
 const router = Router();
+
+
+
 
 router.get(
   "/activos",
@@ -255,7 +260,7 @@ router.get(
         data: servicio.data,
       });
     } catch (error: any) {
-      console.error("❌ Error en /activo/:servicioId:", error.message);
+      console.error(" Error en /activo/:servicioId:", error.message);
       return res.status(500).json({
         success: false,
         message: error.message || "Error inesperado al obtener el servicio activo",
@@ -264,6 +269,48 @@ router.get(
   }
 );
 
+
+router.get(
+  "/activos/chevere",
+  async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const serviciosChevere = await getServiciosActivosConPlanChevere();
+
+      return res.status(200).json({
+        success: true,
+        message: "Servicios activos con plan 'chévere' obtenidos correctamente",
+        data: serviciosChevere,
+      });
+    } catch (error: any) {
+      console.error(" Error en /activos/chevere:", error.message);
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Error inesperado al obtener servicios con plan 'chevere'",
+      });
+    }
+  }
+);
+
+router.get(
+  "/activos/premium",
+  async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const serviciosPremium = await getServiciosActivosPremium();
+
+      return res.status(200).json({
+        success: true,
+        message: "Servicios activos con plan premium obtenidos correctamente",
+        data: serviciosPremium,
+      });
+    } catch (error: any) {
+      console.error(" Error en /activos/premium:", error.message);
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Error inesperado al obtener servicios premium",
+      });
+    }
+  }
+);
 
 
 export default router;

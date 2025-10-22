@@ -81,7 +81,7 @@ export const getPlanesBeneficios = async (): Promise<void> => {
     const planes = await Planes.findAll();
 
     if (planes.length === 0) {
-      console.log("❌ No existen planes registrados. Ejecuta primero getPlanes().");
+      console.log(" No existen planes registrados. Ejecuta primero getPlanes().");
       return;
     }
 
@@ -129,6 +129,6 @@ export const getPlanesBeneficios = async (): Promise<void> => {
       `\n Resumen: ${beneficiosCreados} plan(es) con beneficios nuevos creados, ${beneficiosExistentes} plan(es) ya tenían beneficios.`
     );
   } catch (error: any) {
-    console.error("❌ Error al crear los beneficios:", error.message);
+    console.error(" Error al crear los beneficios:", error.message);
   }
 };

@@ -149,7 +149,7 @@ export const getCategoriasConServiciosActivosPorDepartamento = async (
 
     return resultado;
   } catch (error: any) {
-    console.error("❌ Error al obtener categorías con servicios activos:", error);
+    console.error(" Error al obtener categorías con servicios activos:", error);
     return [];
   }
 };
@@ -219,7 +219,7 @@ export const getSubcategoriasConServiciosActivos = async (
 
     return resultado;
   } catch (error: any) {
-    console.error("❌ Error al obtener subcategorías con servicios activos:", error);
+    console.error(" Error al obtener subcategorías con servicios activos:", error);
     return [];
   }
 };

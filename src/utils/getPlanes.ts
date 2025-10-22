@@ -37,7 +37,7 @@ export const getPlanes = async (): Promise<void> => {
     // 🔍 Obtenemos los tipos de plan existentes
     const tipos = await TipoPlanes.findAll();
     if (tipos.length === 0) {
-      console.log("❌ No hay tipos de planes disponibles. Ejecuta primero getTipoPlanes().");
+      console.log(" No hay tipos de planes disponibles. Ejecuta primero getTipoPlanes().");
       return;
     }
 

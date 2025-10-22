@@ -398,7 +398,7 @@ if (completadoCurso) {
     throw new Error(
       JSON.stringify({
         success: false,
-        message: error.message || "❌ Error al guardar el progreso",
+        message: error.message || " Error al guardar el progreso",
       })
     );
   }

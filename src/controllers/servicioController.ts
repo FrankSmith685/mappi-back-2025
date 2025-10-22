@@ -1,14 +1,193 @@
 import { sequelize } from "../db";
 import { ServicioAttributes, ServicioCreationAttributes, ServicioData } from "../interfaces/IServicios";
-import { Model, fn, col } from "sequelize";
+import { Model, fn, col, Op } from "sequelize";
 
-const { Servicios, Subcategorias, Direcciones, Ubigeos, Categorias, Archivos } = sequelize.models;
+const { Servicios, Subcategorias, Direcciones, Ubigeos, Categorias, Archivos, Usuarios, PlanesUsuarios, Empresas, Planes,TipoPlanes } = sequelize.models;
 
 export interface ServicioResponse {
   success: boolean;
   message: string;
   data?: ServicioData;
 }
+
+export const getServiciosActivosPremium = async () => {
+  try {
+    const servicios = await Servicios.findAll({
+      where: {
+        SERV_Estado: true,
+        SERV_Archivado: false,
+      },
+      include: [
+        //  Subcategoría y Categoría
+        {
+          model: Subcategorias,
+          as: "Subcategoria",
+          attributes: ["SUBC_Id", "SUBC_Nombre"],
+          include: [
+            {
+              model: Categorias,
+              as: "Categoria",
+              attributes: ["CATE_Id", "CATE_Nombre"],
+            },
+          ],
+        },
+
+        //  Archivos del servicio (logo, portada, imagen)
+        {
+          model: Archivos,
+          as: "Archivos",
+          attributes: ["ARCH_ID", "ARCH_Tipo", "ARCH_Ruta"],
+          where: {
+            ARCH_Tipo: {
+              [Op.in]: ["logo", "portada", "imagen"],
+            },
+          },
+          required: false,
+        },
+
+        //  Usuario con plan premium activo
+        {
+          model: Usuarios,
+          as: "Usuario",
+          attributes: ["USUA_Interno", "USUA_Nombre", "USUA_Apellido"],
+          include: [
+            {
+              model: Empresas,
+              as: "Empresas",
+              attributes: ["EMPR_Interno", "EMPR_RazonSocial"],
+              required: false,
+            },
+            {
+              model: PlanesUsuarios,
+              as: "PlanesAsignados",
+              required: true, // Solo traer si tiene plan premium
+              where: {
+                PLUS_EstadoPlan: "activo",
+                PLUS_EsPremium: true, //  Solo premium
+                PLUS_FechaExpiracion: {
+                  [Op.or]: [
+                    { [Op.gte]: new Date() },
+                    { [Op.is]: null },
+                  ],
+                },
+              },
+              include: [
+                {
+                  model: Planes,
+                  as: "Plan",
+                  attributes: [
+                    "PLAN_Id",
+                    "PLAN_TipoUsuario",
+                    "PLAN_Precio",
+                    "PLAN_DuracionMeses",
+                  ],
+                  include: [
+                    {
+                      model: TipoPlanes,
+                      as: "TipoPlan",
+                      attributes: ["TIPL_Id", "TIPL_Nombre"],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      order: [["SERV_FechaRegistro", "DESC"]],
+      limit: 4,
+    });
+
+    //  Convertir a objetos planos
+    return servicios.map((s: any) => s.get({ plain: true }));
+  } catch (error: any) {
+    console.error(" Error en getServiciosActivosPremium:", error.message);
+    return [];
+  }
+};
+
+export const getServiciosActivosConPlanChevere = async () => {
+  try {
+    const servicios = await Servicios.findAll({
+      where: {
+        SERV_Estado: true,
+        SERV_Archivado: false,
+      },
+      include: [
+        //  Usuario con su último plan chévere activo
+        {
+          model: Usuarios,
+          as: "Usuario",
+          required: true,
+          include: [
+            {
+              model: PlanesUsuarios,
+              as: "PlanesAsignados",
+              separate: true, //  Aplica limit/order internamente
+              limit: 1,
+              order: [["PLUS_Id", "DESC"]], // último plan asignado
+              where: {
+                PLUS_EstadoPlan: "activo",
+                PLUS_FechaExpiracion: {
+                  [Op.or]: [
+                    { [Op.gte]: new Date() },
+                    { [Op.is]: null },
+                  ],
+                },
+              },
+              include: [
+                {
+                  model: Planes,
+                  as: "Plan",
+                  required: true,
+                  include: [
+                    {
+                      model: TipoPlanes,
+                      as: "TipoPlan",
+                      required: true,
+                      where: { TIPL_Nombre: "Plan Chévere" },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+
+        //  Subcategoría y categoría
+        {
+          model: Subcategorias,
+          as: "Subcategoria",
+          include: [{ model: Categorias, as: "Categoria" }],
+        },
+
+        //  Archivos
+        {
+          model: Archivos,
+          as: "Archivos",
+          attributes: ["ARCH_ID", "ARCH_Tipo", "ARCH_Ruta"],
+        },
+      ],
+
+      //  Ordenar por la fecha de registro del servicio (más recientes primero)
+      order: [["SERV_FechaRegistro", "DESC"]],
+    });
+
+    //  Filtrar solo los que realmente tienen el Plan Chévere activo
+    const filtrados = servicios
+      .map((s: any) => s.get({ plain: true }))
+      .filter(
+        (s: any) =>
+          s.Usuario?.PlanesAsignados?.length > 0 &&
+          s.Usuario.PlanesAsignados[0]?.Plan?.TipoPlan?.TIPL_Nombre === "Plan Chévere"
+      );
+
+    return filtrados;
+  } catch (error: any) {
+    console.error(" Error en getServiciosActivosConPlanChevere:", error.message);
+    return [];
+  }
+};
 
 export const getServicios = async (): Promise<ServicioData[]> => {
   try {
@@ -226,7 +405,7 @@ export const getServicioActivoById = async (
       data: servicioData,
     };
   } catch (error: any) {
-    console.error("❌ Error en getServicioActivoById:", error.message);
+    console.error(" Error en getServicioActivoById:", error.message);
     return {
       success: false,
       message: "Error al obtener el servicio activo: " + error.message,
@@ -592,7 +771,7 @@ export const getServiciosActivos = async (): Promise<{
       servicios: serviciosData,
     };
   } catch (error: any) {
-    console.error("❌ Error al obtener servicios activos con categoría:", error.message);
+    console.error(" Error al obtener servicios activos con categoría:", error.message);
     return { total: 0, servicios: [] };
   }
 };

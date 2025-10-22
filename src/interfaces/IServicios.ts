@@ -8,7 +8,7 @@ export interface SubcategoriaData {
   cod_subcategoria?: number;
   nombre?: string;
   descripcion?: string | null;
-  categoria?: CategoriaData | null; // ✅ ← agrega esto
+  categoria?: CategoriaData | null; //  ← agrega esto
 }
 
 export interface DireccionData {
