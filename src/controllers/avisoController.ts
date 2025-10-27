@@ -2,7 +2,7 @@ import { sequelize } from "../db";
 import { calcularProgreso } from "../helpers/calcularProgreso";
 import { AvisoAttributes, AvisoCreateInput, AvisoCreationAttributes } from "../interfaces/IAvisos";
 
-const { Avisos, Servicios, PlanesUsuarios, Subcategorias,Archivos  } = sequelize.models;
+const { Avisos, Servicios, PlanesUsuarios, Subcategorias,Archivos, Direcciones  } = sequelize.models;
 
 // Obtener todos los avisos
 export const getAvisos = async (
@@ -35,16 +35,18 @@ export const getAvisos = async (
               attributes: ["SUBC_Id", "SUBC_Nombre", "SUBC_Descripcion"],
             },
             {
-              // Incluir logo del servicio
               model: Archivos,
               as: "Archivos",
               required: false,
               where: {
-                ARCH_Tipo: "logo",
+                ARCH_Tipo: "imagen",
                 ARCH_Entidad: "servicio",
               },
-              attributes: ["ARCH_Ruta"], // Solo mostramos la ruta
-            },
+              attributes: ["ARCH_Ruta"],
+              limit: 1, // solo la primera imagen
+              separate: true, // <- importante para que `limit` funcione dentro del include
+              order: [["ARCH_Id", "ASC"]], // opcional, para que la primera sea la más antigua
+            }
           ],
         },
       ],
@@ -191,39 +193,68 @@ export const deleteAviso = async (
 ): Promise<{ success: boolean; message: string }> => {
   const transaction = await sequelize.transaction();
   try {
-    // Buscar el aviso
     const aviso = await Avisos.findByPk(id, { transaction });
 
     if (!aviso) {
       throw new Error("Aviso no encontrado");
     }
 
-    // Obtener el servicio asociado (si existe)
     const servicioId = aviso.getDataValue("SERV_Interno");
 
-    // Primero eliminamos el aviso
-    await aviso.destroy({ transaction });
-
-    // Luego eliminamos el servicio si existe
+    //  1. Si el aviso tiene un servicio, eliminar sus relaciones
     if (servicioId) {
-      const servicio = await Servicios.findByPk(servicioId, { transaction });
-      if (servicio) {
-        await servicio.destroy({ transaction });
-      }
+      // Eliminar archivos del servicio
+      await Archivos.destroy({
+        where: {
+          ARCH_EntidadId: servicioId,
+          ARCH_Entidad: "servicio",
+        },
+        transaction,
+      });
+
+      // Eliminar dirección asociada al servicio
+      await Direcciones.destroy({
+        where: {
+          DIUS_Cod_Entidad: servicioId,
+          DIUS_Tipo_Entidad: "servicio",
+        },
+        transaction,
+      });
+
+      // Eliminar servicio
+      await Servicios.destroy({
+        where: { SERV_Interno: servicioId },
+        transaction,
+      });
     }
 
-    // Confirmamos los cambios
+    //  2. Eliminar archivos del aviso (si existen)
+    const avisoId = aviso.getDataValue("AVIS_Id");
+
+    await Archivos.destroy({
+      where: {
+        ARCH_EntidadId: avisoId,
+        ARCH_Entidad: "aviso",
+      },
+      transaction,
+    });
+
+
+    //  3. Eliminar el aviso
+    await aviso.destroy({ transaction });
+
+    //  4. Confirmar cambios
     await transaction.commit();
 
     return {
       success: true,
-      message: "Aviso y su servicio asociado eliminados correctamente",
+      message: "Aviso y todos sus datos relacionados eliminados correctamente",
     };
   } catch (error: any) {
-    // Revertir en caso de error
     await transaction.rollback();
     throw new Error(
       JSON.stringify({ success: false, message: error.message })
     );
   }
 };
+

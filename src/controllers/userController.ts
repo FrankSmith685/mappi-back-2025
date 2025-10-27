@@ -133,7 +133,10 @@ export const getUserById = async (userId: string): Promise<UsuarioResponse> => {
   //  Calcular tipo de plan y tipo de usuario
   const tipoPlan = planActivoData?.Plan?.TipoPlan?.TIPL_Nombre?.toLowerCase() || "";
   const tipoUsuario = planActivoData?.Plan?.PLAN_TipoUsuario?.toLowerCase() || "";
-  const esEmpresa = userPlain.Empresas && userPlain.Empresas.length > 0;
+  const esEmpresa =
+  (userPlain.Empresas && userPlain.Empresas.length > 0) ||
+  (planActivoData?.Plan?.PLAN_TipoUsuario?.toLowerCase() === "empresa");
+
 
   // Calcular límites dinámicos
   let limiteServicios = 0;

@@ -58,7 +58,7 @@ const beneficiosPorPlan: Record<
       "Publicar máximo hasta 3 huariques",
       // "Panel de estadísticas avanzado (clics, contactos, conversiones)",
       // "Soporte técnico prioritario",
-      "Opción de destacar en el carrusel de empresas",
+      // "Opción de destacar en el carrusel de empresas",
     ],
     3: [
       "Aparece en el mapa por 1 año",
